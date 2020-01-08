@@ -1,0 +1,16 @@
+{
+  "source": {
+    "include": ["src/FctQuery.js", "src/FctResult.js", "src/JXON.js"]
+  },
+  "sourceType": "module",
+  "opts": {
+    "destination": "./doc/",
+    "readme": "./README.md"
+  },
+  "plugins": ["./node_modules/jsdoc-export-default-interop/dist/index"],
+  "templates": {
+    "default": {
+      "outputSourceFiles": false
+    }
+  }
+}
