@@ -1,12 +1,12 @@
 import { FctQuery } from '../src/FctQuery.js';
 import { FctResult } from '../src/FctResult.js';
-import FctUiUtil from '../src/FctUiUtil.js';
 import { fct_test_env }  from './test.conf.js';
 import $ from "../src/jquery.module.js";
 
 import fixtureFctQry1 from './fixtures/fct_qry_1_viewtype_classes-request.js';
 import fixtureFctQry2 from './fixtures/fct_qry_2_viewtype_list-viewlevel_3-request.js';
 import fixtureFctQry3 from './fixtures/fct_qry_3_viewtype_list-viewlevel_3b-request.js';
+import fixtureFctQry4 from './fixtures/fct_qry_4_viewtype_list-request.js';
 
 describe('FctQuery', () => {
   describe('#constructor', () => {
@@ -143,81 +143,44 @@ describe('FctQuery', () => {
     });
   });
 
-  describe('#queryDescription', () => {
-    it('should provide a SPARQL-like description of the query expressed by the XML', () => {
+  describe.only('#queryFilterDescriptors', () => {
+    it('should provide SPARQL-like filter descriptors for fixture FctQry3', () => {
       let fctQuery = new FctQuery(fixtureFctQry3);
-      let fctUiUtil = new FctUiUtil();
-      let qryDesc = fctQuery.queryDescription(fctUiUtil);
+      let rFilterDesc = fctQuery.queryFilterDescriptors();
 
-      /* 
-      for (const htmlSnippet of qryDesc)
-      {
-        console.log();
-        console.log('------------------------------');
-        console.log('Snippet:');
-        console.log(JSON.stringify(htmlSnippet, null, '  '));
-      };
+      expect(rFilterDesc.length).to.equal(8);
+      /* TO DO: Add assertions
+      expect(rFilterDesc[0].text).to.equal('?s1 is a <http://schema.org/Business>');
+      expect(rFilterDesc[1].text).to.equal('?s1 <http://schema.org/makesOffer> ?s2');
+      expect(rFilterDesc[2].text).to.equal('?s2 <http://schema.org/businessFunction> ?s3');
+      expect(rFilterDesc[3].text).to.equal('?s3 = <http://purl.org/goodrelations/v1#Dispose>');
+      expect(rFilterDesc[4].text).to.equal('?s2 <http://schema.org/itemOffered> ?s4');
+      expect(rFilterDesc[5].text).to.equal('?s4 is a <http://schema.org/Product>');
+      expect(rFilterDesc[6].text).to.equal('?s4 <http://schema.org/material> ?s5');
+      expect(rFilterDesc[7].text).to.equal('?s5 = "asbestos"');
       */
 
-      expect(qryDesc.length).to.equal(8);
-      expect(qryDesc[0].text).to.equal('?s1 is a <http://schema.org/Business>');
-      expect(qryDesc[1].text).to.equal('?s1 <http://schema.org/makesOffer> ?s2');
-      expect(qryDesc[2].text).to.equal('?s2 <http://schema.org/businessFunction> ?s3');
-      expect(qryDesc[3].text).to.equal('?s3 = <http://purl.org/goodrelations/v1#Dispose>');
-      expect(qryDesc[4].text).to.equal('?s2 <http://schema.org/itemOffered> ?s4');
-      expect(qryDesc[5].text).to.equal('?s4 is a <http://schema.org/Product>');
-      expect(qryDesc[6].text).to.equal('?s4 <http://schema.org/material> ?s5');
-      expect(qryDesc[7].text).to.equal('?s5 = "asbestos"');
-    });
-  });
-
-  describe.only('#queryDescriptionAttachActions', () => {
-    it('TO DO: REMOVE', () => {
-      let fctQuery = new FctQuery(fixtureFctQry3);
-      let fctUiUtil = new FctUiUtil();
-      let qryDesc = fctQuery.queryDescription(fctUiUtil);
-
-      // ISSUE: This replaces all hrefs in the template, not a selected href.
-      let qryDescSetNoOpHref = (qryDesc) => {
-        if (qryDesc.template.includes('{{href}}')) {
-          qryDesc.template = qryDesc.template.replace(/\{\{href\}\}/g, '#');
-        }
-      };
-
-      // ISSUE: This sets the handler for all hrefs in the template, not a selected href.
-      let qryDescSetClickHndlr = (qryDesc, onClickAttrVal) => {
-        if (qryDesc.template.includes('<a ')) {
-          qryDesc.template = qryDesc.template.replace(/<a /, `<a onClick=${onClickAttrVal} `);
-        }
-      };
-
-      // !!!! Instead of handleClick  use React router with query params
-      // !!!! https://learnwithparam.com/blog/how-to-handle-query-params-in-react-router/
-
-      // console.log('qryDesc:',  qryDesc);
-      for (const desc of qryDesc)
+      for (const filterDesc of rFilterDesc)
       {
-        console.log();
-        console.log('------------------------------');
-        console.log('Snippet:');
-        console.log(JSON.stringify(desc, null, '  '));
-
-        qryDescSetNoOpHref(desc);
-        qryDescSetClickHndlr(desc, "{handleClick}");
-        console.log('New template: ', desc.template);
-
-        /*
-        if (desc.actionContexts) {
-          let htmlSnippet = desc.template;
-          for (const ac of desc.actionContexts) {
-            ;
-          }
-        }
-       */
-      }
-
-      expect(qryDesc.length).to.equal(8);
+        console.log('-- Filter ----------------------------');
+        console.log(JSON.stringify(filterDesc, null, '  '));
+      };
     });
+
+    it('should provide SPARQL-like filter descriptors for fixture FctQry4', () => {
+      let fctQuery = new FctQuery(fixtureFctQry4);
+      let rFilterDesc = fctQuery.queryFilterDescriptors();
+
+      // expect(rFilterDesc.length).to.equal(8); // TO DO - Add assertions
+
+      for (const filterDesc of rFilterDesc)
+      {
+        console.log('-- Filter ----------------------------');
+        console.log(JSON.stringify(filterDesc, null, '  '));
+      };
+
+    });
+
   });
 
 });

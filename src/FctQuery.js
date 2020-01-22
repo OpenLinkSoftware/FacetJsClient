@@ -246,7 +246,7 @@ export class FctQuery {
    * The text of the &lt;value&gt; element is specified either as the content of the element, or
    * in a @val attribute with an empty element.
    */
-  getValue($valueElement) {
+  getValueAsTurtle($valueElement) {
     // Equivalent of /fct PL routine fct_literal()
     let dataType = $valueElement.attr('datatype');
     let lang = $valueElement.attr('lang');
@@ -266,10 +266,10 @@ export class FctQuery {
     else if (val.endsWith('^^<uri>')) {
       let match = val.match(/(.*)\^{2}<uri>/);
       if (match && match[1])
-        value = `&lt;${match[1]}&gt;`;
+        value = `<${match[1]}>`;
     }
     else if (['uri', 'url', 'iri'].includes(dataType)) {
-      value = `&lt;${val}&gt;`;
+      value = `<${val}>`;
     }
     else if (dataType === undefined || dataType === '') {
       value = `"${val}"`;
@@ -281,7 +281,7 @@ export class FctQuery {
       value = val;
     }
     else {
-      value = `"${val}"^^&lt;${dataType}&gt;`;
+      value = `"${val}"^^<${dataType}>`;
     }
 
     return value;
@@ -385,7 +385,7 @@ export class FctQuery {
        })
     })
     */
-
+    console.log('FctQuery#execute: input XML: ', this.toXml());
     return new Promise((resolve, reject) => {
       $.ajax({
         url: this._fctSvcEndpoint,
@@ -419,19 +419,16 @@ export class FctQuery {
    */
   queryDescription_describeChildNodes(opt) {
     // Equivalent of /fct PL routine fct_query_info_1.
-
     let $e = $(opt.$currentNode).children();
-    // TO DO: Emit <ul class="qryInfoLevel{opt.level}">
     for (let i = 0; i < $e.length; i++)
     {
       let newOpt = {
         $currentNode: $($e[i]),
         level: opt.level + 1
       };
-  
+
       this.queryDescription_describeNode({...opt, ...newOpt});
     }
-    // TO DO: Emit </ul>
   }
 
   /**
@@ -443,9 +440,8 @@ export class FctQuery {
     
     let console_indent = " ".repeat(opt.level * 4);
     let nodeName = opt.$currentNode.get(0).nodeName.toLowerCase();
-    let htmlTemplateText = template => $(`<span>${template}</span>`).text().replace(/\s+/g, ' ').trim();
 
-    /*
+    /* */
     console.log(console_indent, "---- Node -------------")
     console.log(console_indent, `#queryDescription_describeNode: <${nodeName}>`);
     console.log(console_indent, '#queryDescription_describeNode: this_s: ', opt.this_s);
@@ -453,7 +449,7 @@ export class FctQuery {
     console.log(console_indent, '#queryDescription_describeNode: ctx: ', opt.ctx);
     console.log(console_indent, '#queryDescription_describeNode: max_s: ', opt.inout.max_s);
     console.log(console_indent, '#queryDescription_describeNode: cno: ', opt.inout.cno);
-    */
+    /* */
     
     if (nodeName === "query") //  Top level Facet XML node
     {
@@ -469,25 +465,18 @@ export class FctQuery {
     }
     else if (nodeName === "class")
     {
-      // STATUS: Complete: // TO DO: Remove
-      let predicate = opt.$currentNode.attr('exclude') === 'yes' ? 'is not a' : 'is a';
-      let classUri = opt.$currentNode.attr('iri');
-
+      // STATUS: Complete, Tested: // TO DO: Remove
       // Unadorned template/filter:
       //   ?${n} is [not] a {classUri}
-      let qryVariableAction = opt.uiUtil.fctQryVariableAction(opt.this_s, opt.ctx);
-      let snippet = 
-      {
-        unadornedTemplate: '?${n} is [not] a {classUri}',
-        template:
-          `${qryVariableAction.snippet} ${predicate} ${opt.uiUtil.fctClassUriFrag(classUri)}`,
-        actionContexts:
-          [
-            qryVariableAction.context,
-          ]
+      let predicate = opt.$currentNode.attr('exclude') === 'yes' ? 'is not a' : 'is a';
+      let classUri = opt.$currentNode.attr('iri');
+      let qryFilter = {
+        template: "?${n} is [not] a {classUri}",
+        s: { type: "variable", value: `?s${opt.this_s}` }, 
+        p: { type: "operator", value: predicate }, // TO DO: set curie property
+        o: { type: "uri", value: classUri } // TO DO: set curie property
       };
-      snippet.text = htmlTemplateText(snippet.template);
-      opt.inout.txt.push(snippet);
+      opt.inout.filterDescs.push(qryFilter);
       opt.inout.cno++;
     }
     else if (nodeName === "text" || nodeName === "text-d")
@@ -496,7 +485,7 @@ export class FctQuery {
       let propertyUri = opt.$currentNode.attr('property');
       let viewType = '';
 
-      if(opt.this_s === opt.ctx)
+      if (opt.this_s === opt.ctx)
       {
         // The current node has the focus, so there must be a <view> element.
         viewType = opt.$currentNode.parent().children('view').attr('type');
@@ -504,121 +493,114 @@ export class FctQuery {
 
       if (propertyUri)
       {
-        // STATUS: Complete: // TO DO: Remove
+        // STATUS: Complete, Tested: // TO DO: Remove
         // Unadorned template/filter:
-        //   ?${n} has {propertyUri} containing text "{textValue}"
-        let qryVariableAction = opt.uiUtil.fctQryVariableAction(opt.this_s, opt.ctx);
-        let snippet = {
-          unadornedTemplate: '?${n} has {propertyUri} containing text "{textValue}"',
-          template:
-            `${qryVariableAction.snippet} has ${opt.uiUtil.fctPropertyUriFrag(propertyUri)} ` +
-            "containing text " +
-            `${opt.uiUtil.fctTextValueFrag(text)}`,
-          actionContexts:
-            [
-              qryVariableAction.context,
-            ]
+        //   ?${n} has {propertyUri} containing text {textValue}
+        let qryFilter = {
+          template: '?${n} has {propertyUri} containing text {textValue}',
+          s: { type: "variable", value: `?s${opt.this_s}`},
+          p: { type: "operator", value: `has [[${propertyUri}]] containing text` }, 
+          o: { type: "literal", value: text }
         };
-        snippet.text = htmlTemplateText(snippet.template);
-        opt.inout.txt.push(snippet);
+        opt.inout.filterDescs.push(qryFilter);
       }
       else if (viewType === 'properties')
       {
-        // STATUS: Complete: // TO DO: Remove
+        // STATUS: Complete, Tested: // TO DO: Remove
         // Unadorned template/filter:
-        //   ?${n} is the subject of any predicate where the object is associated with {textValue}"
-
+        //   ?${n} is the subject of any predicate where the object is associated with {textValue}
         let limit = this.getViewLimit();
-        let qryVariableAction = opt.uiUtil.fctQryVariableAction(opt.this_s, opt.ctx);
-        let setViewPropertiesAction = opt.uiUtil.fctSetViewTextPropertiesAction(limit, opt.inout.cno);
-        let snippet = {
-          unadornedTemplate: '?${n} is the subject of any predicate where the object is associated with {textValue}',
-          template: 
-            `${qryVariableAction.snippet} is the ` + 
-            `${opt.uiUtil.fctSubjectTerm()} of any ${setViewPropertiesAction.snippet} ` +
-            `where the ${opt.uiUtil.fctObjectTerm()} is associated with ` +
-            `${opt.uiUtil.fctTextValueFrag(text)}`,
-          actionContexts:
-            [
-              qryVariableAction.context,
-              setViewPropertiesAction.context,
-            ]
+        let qryFilter = {
+          template: '?${n} is the subject of any predicate where the object is associated with {textValue}',
+          s: { type: "variable", value: `?s${opt.this_s}`},
+          p: { type: "operator", value: "is the {{subjectTerm}} of any [[action0|{{predicateTerm}}]] where the {{objectTerm}} is associated with" },
+          o: { type: "literal", value: text },
+          actions: [
+            // action0:
+            // Equivalent to /fct action: /fct/facet.vsp?sid=%d&cmd=set_view&type=text-properties&limit=%d&offset=0&cno=%d
+            {
+              action: 'setView', 
+              args: {
+                viewType: 'text-properties',
+                offset: 0,
+                limit,
+                cno: opt.inout.cno
+              }
+            }
+          ]
         };
-        snippet.text = htmlTemplateText(snippet.template);
-        opt.inout.txt.push(snippet);
+        opt.inout.filterDescs.push(qryFilter);
       }
       else if (viewType === 'properties-in')
       {
-        // STATUS: Complete: // TO DO: Remove
+        // STATUS: Complete, Tested: // TO DO: Remove
         // Unadorned template/filter:
-        //   ?${n} is the object of any predicate where the subject is associated with {textValue}"
-
+        //   ?${n} is the object of any predicate where the subject is associated with {textValue}
         let limit = this.getViewLimit();
-        let qryVariableAction = opt.uiUtil.fctQryVariableAction(opt.this_s, opt.ctx);
-        let setViewPropertiesAction = opt.uiUtil.fctSetViewTextPropertiesAction(limit, opt.inout.cno);
-        let snippet = {
-          unadornedTemplate: '?${n} is the object of any predicate where the subject is associated with {textValue}',
-          template: 
-            `${qryVariableAction.snippet} is the ` + 
-            `${opt.uiUtil.fctObjectTerm()} of any ${setViewPropertiesAction.snippet} ` +
-            `where the ${opt.uiUtil.fctSubjectTerm()} is associated with ` +
-            `${opt.uiUtil.fctTextValueFrag(text)}`,
-          actionContexts:
-            [
-              qryVariableAction.context,
-              setViewPropertiesAction.context,
-            ]
+        let qryFilter = {
+          template: '?${n} is the object of any predicate where the subject is associated with {textValue}',
+          s: { type: "variable", value: `?s${opt.this_s}`},
+          p: { type: "operator", value: "is the {{objectTerm}} of any [[action0|{{predicateTerm}}]] where the {{subjectTerm}} is associated with" },
+          o: { type: "literal", value: text },
+          actions: [
+            // action0:
+            // Equivalent to /fct action: /fct/facet.vsp?sid=%d&cmd=set_view&type=text-properties&limit=%d&offset=0&cno=%d
+            {
+              action: 'setView', 
+              args: {
+                viewType: 'text-properties',
+                offset: 0,
+                limit,
+                cno: opt.inout.cno
+              }
+            }
+          ]
         };
-        snippet.text = htmlTemplateText(snippet.template);
-        opt.inout.txt.push(snippet);
+        opt.inout.filterDescs.push(qryFilter);
       }
       else
       {
-        // STATUS: Complete: // TO DO: Remove
+        // STATUS: Complete, Tested: // TO DO: Remove
         // Unadorned template/filter:
-        //   ?${n} has any predicate with object {textValue}"
-
+        //   ?${n} has any predicate with object {textValue}
         let limit = this.getViewLimit();
-        let qryVariableAction = opt.uiUtil.fctQryVariableAction(opt.this_s, opt.ctx);
-        let setViewPropertiesAction = opt.uiUtil.fctSetViewTextPropertiesAction(limit, opt.inout.cno);
-        let snippet = {
-          unadornedTemplate: '?${n} has any predicate with object {textValue}',
-          template: 
-            `${qryVariableAction.snippet} has ` + 
-            `${setViewPropertiesAction.snippet} ` +
-            `with ${opt.uiUtil.fctObjectTerm()} ` +
-            `${opt.uiUtil.fctTextValueFrag(text)}`,
-          actionContexts:
-            [
-              qryVariableAction.context,
-              setViewPropertiesAction.context,
-            ]
+        let qryFilter = {
+          template: '?${n} has any predicate with object {textValue}',
+          s: { type: "variable", value: `?s${opt.this_s}`},
+          p: { type: "operator", value: "has [[action0|any {{predicateTerm}}]] with {{objectTerm}}" },
+          o: { type: "literal", value: text },
+          actions: [
+            // action0:
+            // Equivalent to /fct action: /fct/facet.vsp?sid=%d&cmd=set_view&type=text-properties&limit=%d&offset=0&cno=%d
+            {
+              action: 'setView', 
+              args: {
+                viewType: 'text-properties',
+                offset: 0,
+                limit,
+                cno: opt.inout.cno
+              }
+            }
+          ]
         };
-        snippet.text = htmlTemplateText(snippet.template);
-        opt.inout.txt.push(snippet);
+        opt.inout.filterDescs.push(qryFilter);
       }
     }
     else if (nodeName === "property")
     {
-      // STATUS: Complete: // TO DO: Remove
+      // STATUS: Complete, Tested: // TO DO: Remove
+      // Unadorned template/filter: 
+      //   ?${n} [does not have property] {propertyUri} ?${n+1}
       opt.inout.max_s++;
       let predicate = opt.$currentNode.attr('exclude') === 'yes' ? 'does not have property' : '';
       let propertyUri = opt.$currentNode.attr('iri');
-      let qryVariableAction = opt.uiUtil.fctQryVariableAction(opt.this_s, opt.ctx);
-      let qryVariableAction2 = opt.uiUtil.fctQryVariableAction(opt.inout.max_s, opt.ctx);
-      let snippet = {
-        unadornedTemplate: '?${n} [does not have property] {propertyUri} ?${n+1}',
-        template:
-          `${qryVariableAction.snippet} ${predicate} ${opt.uiUtil.fctPropertyUriFrag(propertyUri)} ` +
-          `${qryVariableAction2.snippet}`,
-        actionContexts:
-          [
-            qryVariableAction.context,
-            qryVariableAction2.context,
-          ]
+      let qryFilter = {
+        template: '?${n} [does not have property] {propertyUri} ?${n+1}',
+        s: { type: "variable", value: `?s${opt.this_s}`},
+        p: { type: "operator", value: `${predicate} [[${propertyUri}]]`.trim() },
+        o: { type: "variable", value: `?s${opt.inout.max_s}` }
       };
-      snippet.text = htmlTemplateText(snippet.template);
-      opt.inout.txt.push(snippet);
+      opt.inout.filterDescs.push(qryFilter);
 
       let newOpt = {
         this_s: opt.inout.max_s
@@ -628,24 +610,18 @@ export class FctQuery {
     }
     else if (nodeName === "property-of")
     {
-      // STATUS: Complete: // TO DO: Remove
+      // STATUS: Complete, Tested: // TO DO: Remove
+      // Unadorned template/filter: 
+      //   ?${n+1} {propertyUri} ?${n}
       opt.inout.max_s++;
       let propertyUri = opt.$currentNode.attr('iri');
-      let qryVariableAction = opt.uiUtil.fctQryVariableAction(opt.this_s, opt.ctx);
-      let qryVariableAction2 = opt.uiUtil.fctQryVariableAction(opt.inout.max_s, opt.ctx);
-      let snippet = {
-        unadornedTemplate: '?${n+1} {propertyUri} ?${n}',
-        template:
-          `${qryVariableAction2.snippet} ${opt.uiUtil.fctPropertyUriFrag(propertyUri)} ` +
-          `${qryVariableAction.snippet}`,
-        actionContexts:
-          [
-            qryVariableAction2.context,
-            qryVariableAction.context,
-          ]
+      let qryFilter = {
+        template: '?${n+1} {propertyUri} ?${n}',
+        s: { type: "variable", value: `?s${opt.inout.max_s}` },
+        p: { type: "uri", value: propertyUri }, // TO DO: curie support
+        o: { type: "variable", value: `?s${opt.this_s}` },
       };
-      snippet.text = htmlTemplateText(snippet.template);
-      opt.inout.txt.push(snippet);
+      opt.inout.filterDescs.push(qryFilter);
 
       let newOpt = {
         this_s: opt.inout.max_s
@@ -655,21 +631,21 @@ export class FctQuery {
     }
     else if (nodeName === "value")
     {
-      // STATUS: Incomplete: // TO DO: Remove
-      let qryVariableAction = opt.uiUtil.fctQryVariableAction(opt.this_s, opt.ctx);
+      // STATUS: Complete, Tested: // TO DO: Remove
+      // Unadorned template/filter: 
+      //   ?${n} {op} ${literalOrIri}
       let op = opt.$currentNode.attr('op') || '=';
-      let literalOrIri = this.getValue(opt.$currentNode);
-      let snippet = {
-        unadornedTemplate: '?${n} {op} ${literalOrIri}',
-        template:
-          `${qryVariableAction.snippet} ${op} ${literalOrIri}`,
-        actionContexts:
-          [
-            qryVariableAction.context,
-          ]
+      let ttlLiteralOrIri = this.getValueAsTurtle(opt.$currentNode);
+      let isIri = str => /^<(http|urn).+>$/.test(str);
+      // Strip < > from IRIs
+      let val = isIri(ttlLiteralOrIri) ? /^<(.+)>$/.exec(ttlLiteralOrIri)[1] : ttlLiteralOrIri;
+      let qryFilter = {
+        template: '?${n} {op} ${literalOrIri}',
+        s: { type: "variable", value: `?s${opt.this_s}`},
+        p: { type: "operator", value: op },
+        o: { type: (isIri(ttlLiteralOrIri) ? "uri" : "literal"), value: val }
       };
-      snippet.text = htmlTemplateText(snippet.template);
-      opt.inout.txt.push(snippet);
+      opt.inout.filterDescs.push(qryFilter);
       opt.inout.cno++;
     }
     else if (nodeName === "cond-parm")
@@ -691,32 +667,26 @@ export class FctQuery {
 
   /**
    * @summary
-   * Generates a SPARQL-like description of the current Facet query and filter
-   * conditions.
+   * Generates a description of the current Facet query filter conditions.
    * 
-   * @param {object} fctUiUtil - An instance of FctUiUtil
-   * @returns {string[]} Array of HTML strings describing the query
+   * @returns {object[]} Array of objects describing the query filters
    * 
    * @description
-   * Each element of the returned array contains a filter condition wrapped
-   * in HTML. The filter conditions are deliberately held in separate
-   * array elements so that the UI can associate controls with each filter
-   * to allow a user to manipulate each individually, e.g. a button to
-   * drop a particular filter.
+   * Each element of the returned array contains a filter condition descriptor.
+   * The filter conditions are deliberately held in separate array elements so 
+   * that the UI can associate controls with each filter, to allow a user to 
+   * manipulate each individually, e.g. a button to drop a particular filter.
    * 
    * FctQuery is intended to be UI independent.
-   * queryDescription uses FctUiUtil to generate these HTML snippets. 
-   * The snippets contain placeholders {{...}} for HTML attribute
-   * values such as class, href etc. The intent is that these placeholders keep
-   * FctQuery independent of the UI and that values for these placeholders
-   * will be injected as late as possible by the UI layer itself.
+   * queryFilterDescriptors returns descriptors in the form of
+   * SPARQL-like subject + predicate + object property sets.
+   * These s-p-o properties may contain placeholders in order to keep
+   * FctQuery independent of the UI and so that values for these placeholders
+   * can be injected later by the UI layer.
    */
-  queryDescription(fctUiUtil) {
+  queryFilterDescriptors() {
     // Equivalent to /fct PL routine fct_top()
-
     let descripParams = { 
-      // in: {object} fctUiUtil - an instance of FctUiUtil
-      uiUtil: fctUiUtil,
       // in: {jQuery object} $currentNode - current XML node being described
       $currentNode: this._root.find('query'),
       // in: {int} this_s - subject node index (n) of current node. s1, s2, ... s(n)
@@ -728,6 +698,8 @@ export class FctQuery {
       inout: {
         // inout: {string[]} txt - output string array being constructed which will contain the query description
         txt: [], 
+        // inout: {object[]} filterDescs - array of filter descriptors, each entry is a pseudo-triple descriptor
+        filterDescs: [],
         // inout: {int} max_s - the maximum index of the implicit subject nodes s(n) implied by the XML 
         max_s: 0, 
         // inout: {int} cno - index of a filter condition / predicate ??? Used to identify a condition e.g. when dropping the condition.
@@ -735,7 +707,7 @@ export class FctQuery {
       }
     };
     this.queryDescription_describeNode(descripParams);
-    return descripParams.inout.txt;
+    return descripParams.inout.filterDescs;
   }
 
   /**
@@ -746,55 +718,4 @@ export class FctQuery {
     // TO DO
   }
 
-  /**
-   * 
-   */
-  getFilterDescriptors() {
-    // TO DO: Replace hardcoded data!
-
-    const qryFilters = [
-      {
-        s: { type: "variable", value: "?s1" },
-        p: { type: "operator", value: "is a" },
-        o: { type: "uri", value: "http://schema.org/Business", curie: "schema:Business"}
-      },
-      {
-        s: { type: "variable", value: "?s1" },
-        p: { type: "uri", value: "http://schema.org/makesOffer", curie: "schema:makesOffer" },
-        o: { type: "variable", value: "?s2"}
-      },
-      {
-        s: { type: "variable", value: "?s2" },
-        p: { type: "uri", value: "http://schema.org/businessFunction", curie: "schema:businessFunction" },
-        o: { type: "variable", value: "?s3"}
-      },
-      {
-        s: { type: "variable", value: "?s3" },
-        p: { type: "operator", value: "==" },
-        o: { type: "uri", value: "http://purl.org/goodrelations/v1#Dispose", curie: "gr:Dispose" }
-      },
-      {
-        s: { type: "variable", value: "?s2" },
-        p: { type: "uri", value: "http://schema.org/itemOffered", curie: "schema:itemOffered"},
-        o: { type: "variable", value: "?s4" }
-      },
-      {
-        s: { type: "variable", value: "?s4" },
-        p: { type: "operator", value: "is a"},
-        o: { type: "variable", value: "?s4" }
-      }, 
-      {
-        s: { type: "variable", value: "?s4" },
-        p: { type: "uri", value: "http://schema.org/material", curie: "schema:material"},
-        o: { type: "variable", value: "?s5" }
-      },
-      {
-        s: { type: "variable", value: "?s5" },
-        p: { type: "operator", value: "==" },
-        o: { type: "literal", value: "asbestos" }
-      }
-    ];
-
-    return qryFilters;
-  }
 }
