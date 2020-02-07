@@ -143,7 +143,7 @@ describe('FctQuery', () => {
     });
   });
 
-  describe.only('#queryFilterDescriptors', () => {
+  describe('#queryFilterDescriptors', () => {
     it('should provide SPARQL-like filter descriptors for fixture FctQry3', () => {
       let fctQuery = new FctQuery(fixtureFctQry3);
       let rFilterDesc = fctQuery.queryFilterDescriptors();
@@ -183,5 +183,133 @@ describe('FctQuery', () => {
 
   });
 
-});
+  describe('#addProperty', () => {
+    it ('for subject node ?s1', () => {
+      const query1 = `
+        <?xml version="1.0"?>
+        <query xmlns="http://openlinksw.com/services/facets/1.0" inference="" same-as="">
+          <text>linked data</text>
+          <view type="classes" limit="20" offset=""/>
+        </query>
+      `;
 
+      let fctQuery = new FctQuery(query1);
+    });
+  });
+
+  describe('#getSubjectCount', () => {
+    it ('should return the number of implicit subject nodes in the query XML', () => {
+      const query1 = `
+      <?xml version="1.0"?>
+      <query xmlns="http://openlinksw.com/services/facets/1.0">
+        <!-- Nesting level 1: implied variable ?s1 -->
+        <class iri="http://schema.org/Business" />
+        <property iri="http://schema.org/makesOffer">
+          <!-- Nesting level 2: implied variable ?s2 -->
+          <property iri="http://schema.org/businessFunction">
+            <!-- Nesting level 3.1: implied variable ?s3 -->
+            <value datatype="uri">http://purl.org/goodrelations/v1#Dispose</value>
+          </property>
+          <property iri="http://schema.org/itemOffered">
+            <!-- Nesting level 3.2: implied variable ?s4 -->
+            <view type="list" limit="100" />
+            <class iri="http://schema.org/Product" />
+            <property iri="http://schema.org/material">
+              <!-- Nesting level 4: implied variable ?s5 -->
+              <value>asbestos</value>
+            </property>
+          </property>
+        </property>
+      </query>
+      `;
+
+      const query2 = `
+      <?xml version="1.0"?>
+      <query xmlns="http://openlinksw.com/services/facets/1.0">
+        <class iri="http://schema.org/Business" />
+        <property iri="http://schema.org/itemOffered">
+          <view type="list" limit="100" />
+          <property iri="http://schema.org/material">
+            <value>gold</value>
+          </property>
+        </property>
+      </query>
+      `;
+
+      const query3 = `
+      <?xml version="1.0"?>
+      <query xmlns="http://openlinksw.com/services/facets/1.0">
+        <class iri="http://schema.org/Business" />
+        <view type="list" limit="100" />
+        <property iri="http://schema.org/itemOffered">
+          <property iri="http://schema.org/material">
+          </property>
+        </property>
+      </query>
+      `;
+
+      let fctQuery;
+      fctQuery = new FctQuery(query1);
+      expect(fctQuery.getSubjectCount()).to.equal(5);
+
+      fctQuery = new FctQuery(query2);
+      expect(fctQuery.getSubjectCount()).to.equal(3);
+
+      fctQuery = new FctQuery(query3);
+      expect(fctQuery.getSubjectCount()).to.equal(2);
+
+    });
+  });
+
+  describe.only('#getSubjectParentElement', () => {
+
+    const query1 = `
+    <?xml version="1.0"?>
+    <query xmlns="http://openlinksw.com/services/facets/1.0">
+      <!-- Nesting level 1: implied variable ?s1 -->
+      <class iri="http://schema.org/Business" />
+      <property iri="http://schema.org/makesOffer">
+        <!-- Nesting level 2: implied variable ?s2 -->
+        <property iri="http://schema.org/businessFunction">
+          <!-- Nesting level 3.1: implied variable ?s3 -->
+          <value datatype="uri">http://purl.org/goodrelations/v1#Dispose</value>
+        </property>
+        <property iri="http://schema.org/itemOffered">
+          <!-- Nesting level 3.2: implied variable ?s4 -->
+          <view type="list" limit="100" />
+          <class iri="http://schema.org/Product" />
+          <property iri="http://schema.org/material">
+            <!-- Nesting level 4: implied variable ?s5 -->
+            <value>asbestos</value>
+          </property>
+        </property>
+      </property>
+    </query>
+    `;
+
+    it('should error if subjectIndex is not numeric', () => {
+      let fctQuery = new FctQuery();
+      expect(() => fctQuery.getSubjectParentElement('a')).to.throw();
+    });
+
+    it('should error if subjectIndex is out of range', () => {
+      let fctQuery = new FctQuery(query1);
+      expect(() => fctQuery.getSubjectParentElement(0)).to.throw();
+      expect(() => fctQuery.getSubjectParentElement(6)).to.throw();
+    });
+
+    it('should return the parent element of a subject node', () => {
+      let fctQuery = new FctQuery(query1);
+      let $node;
+
+      $node = fctQuery.getSubjectParentElement(1);
+      expect($node.tagName).to.equal('QUERY');
+
+      $node = fctQuery.getSubjectParentElement(4);
+      expect($node[0].tagName).to.equal('PROPERTY');
+      expect($node.attr('iri')).to.equal('http://schema.org/itemOffered');
+    });
+    
+  });
+
+});

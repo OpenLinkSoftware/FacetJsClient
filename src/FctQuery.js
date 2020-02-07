@@ -1,11 +1,23 @@
 import $ from "./jquery.module.js";
 import { FctResult } from '../src/FctResult.js';
 
-// TO DO: 
-// - Ensure FCT_QUERY_AJAX_TIMEOUT is greater than the 
+// Fixed defaults
+const  FCT_QRY_DFLT_VIEW_TYPE = "text";
+
+// Configurable defaults
+// TO DO
+// - Ensure FCT_QRY_AJAX_TIMEOUT is greater than the 
 //   the timeout specified in the query body.
-// - Make configurable
-const FCT_QUERY_AJAX_TIMEOUT = 60000; // milliseconds
+export let FCT_QRY_AJAX_TIMEOUT = 60000; // milliseconds
+export let FCT_QRY_DFLT_VIEW_LIMIT = 50;
+// export let FCT_QRY_DFLT_SVC_ENDPOINT = 'http://localhost:8896/fct/service';
+export let FCT_QRY_DFLT_SVC_ENDPOINT = 'http://linkeddata.uriburner.com/fct/service';
+
+// TO DO:
+// Look for default overrides set through a config.js file.
+// FCT_QRY_DFLT_VIEW_LIMIT = xxx
+// FCT_QRY_AJAX_TIMEOUT = xxx
+// FCT_QRY_DFLT_SVC_ENDPOINT = xxx
 
 const ID_QUERY = "0";
 const ID_TEXT = "1";
@@ -15,6 +27,20 @@ const ID_VIEW = "2";
  * Represents a Facet query.
  */
 export class FctQuery {
+
+  /**
+   * Class constant
+   */ 
+  static get FCT_QRY_DFLT_VIEW_LIMIT() {
+    return FCT_QRY_DFLT_VIEW_LIMIT;
+  }
+
+  /**
+   * Class constant
+   */
+  static get FCT_QRY_DFLT_SVC_ENDPOINT() {
+    return FCT_QRY_DFLT_SVC_ENDPOINT;
+  }
 
   /** 
    * @param {string} [sourceXml]
@@ -27,8 +53,10 @@ export class FctQuery {
       let $query = this._root.append('<query/>').find('query');
       $query.attr('xmlns', 'http://openlinksw.com/services/facets/1.0');
       $query.append('<view/>');
-      // Set the default view type to 'text'.
-      $query.find('view').attr('type', 'text').attr('limit', '').attr('offset', '');
+      $query.find('view')
+        .attr('type', `${FCT_QRY_DFLT_VIEW_TYPE}`)
+        .attr('limit', `${FCT_QRY_DFLT_VIEW_LIMIT}`)
+        .attr('offset', '0');
     }
     else
     {
@@ -181,8 +209,29 @@ export class FctQuery {
       // $query.append('<text class="' + ID_TEXT + '"/>');
       $query.append('<text/>');
     }
+    else
+    {
+      this.removeQueryTextProperty();
+      // TO DO: Remove all other element attributes
+    }
+
     $query.find('text').text(str);
     // $query.find('text').attr('label', str.split('  ').join(' ').split(' ').join(' + '));
+  }
+
+  /** */
+  get queryTextProperty() {
+    return this._root.find('query text').attr('property');
+  }
+
+  /** */
+  set queryTextProperty(propertyIri) {
+    // TO DO: Check propertyIri is an IRI
+    this._root.find('query text').attr('property', propertyIri);
+  }
+
+  removeQueryTextProperty() {
+    this._root.find('query text').removeAttr('property');
   }
 
   /** */
@@ -360,9 +409,7 @@ export class FctQuery {
     //          list | list-count | alphabet | geo | describe |
     //          years | months | weeks 
     //
-    // TO DO:
-    // Are the limit and offset attrs mandatory for the view element?
-    // If so, they must be set here.
+    // The existing offset and limit attributes (initialized by the constructor) should be unchanged.
     this._root.find('query view').attr('type', type);
   }
 
@@ -393,7 +440,7 @@ export class FctQuery {
         type: 'POST',
         contentType: 'text/xml',
         dataType: 'xml', 
-        timeout: FCT_QUERY_AJAX_TIMEOUT,
+        timeout: FCT_QRY_AJAX_TIMEOUT,
         success: successHndlr,
         error: errorHndlr,
       });
@@ -441,7 +488,7 @@ export class FctQuery {
     let console_indent = " ".repeat(opt.level * 4);
     let nodeName = opt.$currentNode.get(0).nodeName.toLowerCase();
 
-    /* */
+    /*
     console.log(console_indent, "---- Node -------------")
     console.log(console_indent, `#queryDescription_describeNode: <${nodeName}>`);
     console.log(console_indent, '#queryDescription_describeNode: this_s: ', opt.this_s);
@@ -449,7 +496,7 @@ export class FctQuery {
     console.log(console_indent, '#queryDescription_describeNode: ctx: ', opt.ctx);
     console.log(console_indent, '#queryDescription_describeNode: max_s: ', opt.inout.max_s);
     console.log(console_indent, '#queryDescription_describeNode: cno: ', opt.inout.cno);
-    /* */
+    */
     
     if (nodeName === "query") //  Top level Facet XML node
     {
@@ -716,6 +763,122 @@ export class FctQuery {
   viewDescription() {
     // Equivalent to /fct PL routine fct_view_info() // TO DO: Remove
     // TO DO
+  }
+
+  /**
+   * Adds a property element.
+   * 
+   * propertyUri - The URI of the property. 
+   * subjectIndex - The index of the implicit subject that the property will belong to.
+   * exclude - If true, sets attribute exclude="yes".
+   * sameAs - If true, sets attribute same_as="yes". If false, omits the attribute.
+   * inferenceContext - The name of the inference context to use. If present, sets attribute inference="{inferenceContext}".
+   * 
+   * returns the subjectIndex of the scope enclosed by the new property element
+   */
+  addProperty(propertyUri, subjectIndex, exclude = false, sameAs = false, inferenceContext = null) {
+
+    // The subjectIndex of the scope enclosed by the new property element is not necessarily subjectIndex + 1.
+    // There could be a pre-existing sibling property element preceding the newly added property element. 
+    // e.g. ?s3 and ?s4 (subject indexes 3 and 4 respectively) in the example XML below.
+    // Consider the case where we've just added <property iri="http://schema.org/itemOffered"/>
+    // In this case: subjectIndex = 2, propSubjIndx = 4.
+    //
+    // <?xml version="1.0"?>
+    // <query xmlns="http://openlinksw.com/services/facets/1.0">
+    //   <!-- Nesting level 1: implied variable ?s1 -->
+    //   <class iri="http://schema.org/Business" />
+    //   <property iri="http://schema.org/makesOffer">
+    //     <!-- Nesting level 2: implied variable ?s2 -->
+    //     <property iri="http://schema.org/businessFunction">
+    //       <!-- Nesting level 3.1: implied variable ?s3 -->
+    //       <value datatype="uri">http://purl.org/goodrelations/v1#Dispose</value>
+    //     </property>
+    //     <property iri="http://schema.org/itemOffered">
+    //       <!-- Nesting level 3.2: implied variable ?s4 -->
+    //       <view type="list" limit="100" />
+    //       <class iri="http://schema.org/Product" />
+    //       <property iri="http://schema.org/material">
+    //         <!-- Nesting level 4: implied variable ?s5 -->
+    //         <value>asbestos</value>
+    //       </property>
+    //     </property>
+    //   </property>
+    // </query>
+    
+    throw new Error('Not implemented');
+    let propSubjIndx = -1;
+    return propSubjIndx;
+  }
+
+  /**
+   * Returns the number of subject nodes in the query XML.
+   * 
+   * Subject nodes are those which have at least one property defined in the XML.
+   * i.e. at least one child node.
+   */
+  getSubjectCount() {
+
+    let cSubjects = 1;
+    let countDescendentLevels = $n => {
+      // console.log('getSubjectCount: tag:', $n[0].tagName, ', cSubjects:',  cSubjects);
+      $n.children().each((idx, el) => {
+        if ($(el).children().length > 0) {
+          cSubjects++;
+          countDescendentLevels($(el));
+        }
+      });
+    };
+
+    let $node = this._root.find('query');
+    countDescendentLevels($node);
+    return cSubjects;
+  }
+
+  /**
+   * Returns the element which provides the context for a subject node. 
+   * i.e. The parent element which wraps the subject node.
+   */
+  getSubjectParentElement(subjectIndex) {
+    if (typeof subjectIndex !== 'number')
+      throw new Error ('subjectIndex must be a number');
+    let maxSubjIndx = this.getSubjectCount();
+    if (subjectIndex <= 0 || subjectIndex > maxSubjIndx)
+      throw new Error('subjectIndex out of range');
+
+    let $node = this._root.find('query');
+    if (subjectIndex === 1)
+      return $node[0];
+     
+    let subjIndx = 1;
+    let $matchedEl = null;
+    let traverseDescendents = $n => {
+        // console.log('getSubjectParentElement: visiting tag:', $n[0].tagName, ', subjIndx:', subjIndx);
+        $n.children().each((idx, el) => {
+          if ($matchedEl)
+            return;
+          if ($(el).children().length > 0) {
+            if (++subjIndx === subjectIndex)
+            {
+              $matchedEl = $(el);
+              // console.log('getSubjectParentElement: match on tag:', $matchedEl[0].tagName, ', subjIndx:', subjIndx);
+              return;
+            }
+            traverseDescendents($(el));
+          }
+        });
+        return $matchedEl;
+      };  
+
+    return traverseDescendents($node);
+  }
+
+  /**
+   * Returns any property elements which are the immediate children of 
+   * a subject node.
+   */
+  getSubjectProperties(subjectIndex) {
+    throw new Error('Not implemented');
   }
 
 }
