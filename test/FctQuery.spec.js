@@ -13,13 +13,12 @@ describe('FctQuery', () => {
     it('should return a partially formed query element', () => {
       let fctQuery = new FctQuery();
       let queryXml = fctQuery.toXml();
-      assert.equal(
-        ('<?xml version="1.0"?>' +
-          '<query xmlns="http://openlinksw.com/services/facets/1.0">' +
-          '<view type="text" limit="" offset="">' +
-          '</view>' +
-          '</query>').trim(),
-        queryXml);
+      let expectedQueryXml = '<?xml version="1.0"?>' +
+      '<query xmlns="http://openlinksw.com/services/facets/1.0">' +
+      `<view type="${FctQuery.FCT_QRY_DFLT_VIEW_TYPE}" limit="${FctQuery.FCT_QRY_DFLT_VIEW_LIMIT}" offset="0">` +
+      '</view>' +
+      '</query>'.trim();
+      assert.equal(expectedQueryXml, queryXml);
     });
   });
 
@@ -193,7 +192,24 @@ describe('FctQuery', () => {
         </query>
       `;
 
+      let subjIndx // The subject index introduced by a new property or property-of element.
       let fctQuery = new FctQuery(query1);
+
+      subjIndx = fctQuery.addProperty('http://schema.org/makesOffer', 1);
+      // console.log('Test #addProperty: subjIndx1:', subjIndx);
+      expect(subjIndx).to.equal(2);
+      
+      subjIndx = fctQuery.addProperty('http://schema.org/businessFunction', 2);
+      // console.log('Test #addProperty: subjIndx2:', subjIndx);
+      expect(subjIndx).to.equal(3);
+
+      subjIndx = fctQuery.addProperty('http://schema.org/itemOffered', 2);
+      // console.log('Test #addProperty: subjIndx3:', subjIndx);
+      expect(subjIndx).to.equal(4);
+
+      subjIndx = fctQuery.addProperty('http://schema.org/material', 4);
+      // console.log('Test #addProperty: subjIndx4:', subjIndx);
+      expect(subjIndx).to.equal(5);
     });
   });
 
@@ -256,12 +272,12 @@ describe('FctQuery', () => {
       expect(fctQuery.getSubjectCount()).to.equal(3);
 
       fctQuery = new FctQuery(query3);
-      expect(fctQuery.getSubjectCount()).to.equal(2);
+      expect(fctQuery.getSubjectCount()).to.equal(3);
 
     });
   });
 
-  describe.only('#getSubjectParentElement', () => {
+  describe('#getSubjectParentElement', () => {
 
     const query1 = `
     <?xml version="1.0"?>
@@ -303,11 +319,15 @@ describe('FctQuery', () => {
       let $node;
 
       $node = fctQuery.getSubjectParentElement(1);
-      expect($node.tagName).to.equal('QUERY');
+      expect($node[0].tagName).to.equal('QUERY');
 
       $node = fctQuery.getSubjectParentElement(4);
       expect($node[0].tagName).to.equal('PROPERTY');
       expect($node.attr('iri')).to.equal('http://schema.org/itemOffered');
+
+      $node = fctQuery.getSubjectParentElement(3);
+      expect($node[0].tagName).to.equal('PROPERTY');
+      expect($node.attr('iri')).to.equal('http://schema.org/businessFunction');
     });
     
   });

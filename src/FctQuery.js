@@ -37,6 +37,13 @@ export class FctQuery {
 
   /**
    * Class constant
+   */ 
+  static get FCT_QRY_DFLT_VIEW_TYPE() {
+    return FCT_QRY_DFLT_VIEW_TYPE;
+  }
+
+  /**
+   * Class constant
    */
   static get FCT_QRY_DFLT_SVC_ENDPOINT() {
     return FCT_QRY_DFLT_SVC_ENDPOINT;
@@ -389,8 +396,6 @@ export class FctQuery {
    * @param {number} index - Index (1 based) of subject node to receive the focus.
    */
   setViewSubjectIndex(index) {
-    console.log('FctQuery#setViewSubjectIndex: index:', index); // TO DO: Remove
-    return; // TO DO: Remove
     let $view = this._root.find('view');
     if ($view.length == 0)
       throw new Error('The Facet XML does not include a <view> elenent.');
@@ -805,18 +810,52 @@ export class FctQuery {
     //     </property>
     //   </property>
     // </query>
+
+   /*
+    * Returns the subject node index of the context introduced by a 
+    * query, property or property-of element.
+    */
+   let getPropertySubjectIndex = $prop => {
+      let indx = 0;
+      let $e = this._root.find('query, property, property-of');
+      $e.each((index, element) => {
+        indx = index + 1;
+        if ($(element) === $prop)
+          return false;
+        return true;  
+      });
+      return indx;
+    };
+
+    if (subjectIndex > this.getSubjectCount())
+      throw new Error(`subjectIndex (${subjectIndex}) out of range.`);
+
+    let newPropAttribs = { iri: propertyUri };
+    if (exclude)
+      newPropAttribs.exclude = "yes";
+    if (sameAs)
+      newPropAttribs.same_as = "yes";
+    if (inferenceContext)
+      newPropAttribs.inference = inferenceContext;
+    let $newProp = $('<property/>', newPropAttribs);
+    // console.log('FctQuery#addProperty: Appending property:', $newProp)
+    let $parent = this.getSubjectParentElement(subjectIndex);
+    // console.log('FctQuery#addProperty: XML before adding property:', this.toXml());
+    $parent.append($newProp);
+    // console.log('FctQuery#addProperty: XML after adding property:', this.toXml());
     
-    throw new Error('Not implemented');
-    let propSubjIndx = -1;
-    return propSubjIndx;
+    return getPropertySubjectIndex($newProp);
   }
 
   /**
    * Returns the number of subject nodes in the query XML.
    * 
-   * Subject nodes are those which have at least one property defined in the XML.
-   * i.e. at least one child node.
+   * An implicit subject node is introduced by an appropriate enclosing element 
+   * (query, property, property-of). property and property-of need not have a
+   * child element in order to be counted as introducing a new subject node.
+   * The child element could be added at a later time before query submission.
    */
+  /* TO DO: Incorrect earlier variant - REMOVE 
   getSubjectCount() {
 
     let cSubjects = 1;
@@ -834,12 +873,34 @@ export class FctQuery {
     countDescendentLevels($node);
     return cSubjects;
   }
+  */
+ getSubjectCount() {
+  let cSubjects = 1;
+  let traverseChildren = $n => {
+    // console.log('getSubjectCount: current tag:', $n[0].tagName, ', cSubjects:',  cSubjects);
+    $n.children().each((idx, el) => {
+      if (['PROPERTY', 'PROPERTY-OF'].includes($(el)[0].tagName))
+      {
+        cSubjects++;
+        // console.log('getSubjectCount: child tag:', $(el)[0].tagName, ', cSubjects:', cSubjects);
+      }
+      if ($(el).children().length > 0) {
+        traverseChildren($(el));
+      }
+    });
+  };
+
+  let $node = this._root.find('query');
+  traverseChildren($node);
+  return cSubjects;
+}
 
   /**
    * Returns the element which provides the context for a subject node. 
    * i.e. The parent element which wraps the subject node.
    */
   getSubjectParentElement(subjectIndex) {
+    // console.log('FctQuery#getSubjectParentElement: in: subjectIndex:', subjectIndex);
     if (typeof subjectIndex !== 'number')
       throw new Error ('subjectIndex must be a number');
     let maxSubjIndx = this.getSubjectCount();
@@ -848,7 +909,7 @@ export class FctQuery {
 
     let $node = this._root.find('query');
     if (subjectIndex === 1)
-      return $node[0];
+      return $node;
      
     let subjIndx = 1;
     let $matchedEl = null;
@@ -857,13 +918,14 @@ export class FctQuery {
         $n.children().each((idx, el) => {
           if ($matchedEl)
             return;
+          if (['PROPERTY', 'PROPERTY-OF'].includes($(el)[0].tagName))
+            ++subjIndx;
+          if (subjIndx === subjectIndex) {
+            $matchedEl = $(el);
+            // console.log('getSubjectParentElement: match on tag:', $matchedEl[0].tagName, ', subjIndx:', subjIndx);
+            return;
+          }
           if ($(el).children().length > 0) {
-            if (++subjIndx === subjectIndex)
-            {
-              $matchedEl = $(el);
-              // console.log('getSubjectParentElement: match on tag:', $matchedEl[0].tagName, ', subjIndx:', subjIndx);
-              return;
-            }
             traverseDescendents($(el));
           }
         });
