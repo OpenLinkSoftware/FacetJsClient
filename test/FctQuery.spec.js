@@ -7,6 +7,7 @@ import fixtureFctQry1 from './fixtures/fct_qry_1_viewtype_classes-request.js';
 import fixtureFctQry2 from './fixtures/fct_qry_2_viewtype_list-viewlevel_3-request.js';
 import fixtureFctQry3 from './fixtures/fct_qry_3_viewtype_list-viewlevel_3b-request.js';
 import fixtureFctQry4 from './fixtures/fct_qry_4_viewtype_list-request.js';
+import fixtureFctQry5 from './fixtures/fct_qry_5_viewtype_list-request.js';
 
 describe('FctQuery', () => {
   describe('#constructor', () => {
@@ -330,6 +331,37 @@ describe('FctQuery', () => {
       expect($node.attr('iri')).to.equal('http://schema.org/businessFunction');
     });
     
+  });
+
+  describe('#setSubjectCondition', () => {
+    it('should create an XML <cond> element', () => {
+      let fctQuery = new FctQuery(fixtureFctQry5);
+      let subjectIndex = fctQuery.getViewSubjectIndex();
+      // console.log('#setSubjectCondition: before setting condition: ', fctQuery.toXml());
+      fctQuery.setSubjectCondition('eq', '27', 'http://www.w3.org/2001/XMLSchema#integer');
+      // setSubjectCondition resets the subject index to 1
+      // console.log('#setSubjectCondition: after setting condition: ', fctQuery.toXml());
+
+      let $conditions = fctQuery.getSubjectConditionElements(subjectIndex);
+      expect($($conditions[0]).text()).to.equal('27');
+      expect($conditions[0].tagName).to.equal('COND');
+    });
+  });
+
+  describe('#removeSubjectConditions', () => {
+    it('should remove all conditions on a subject', () => {
+      let fctQuery = new FctQuery(fixtureFctQry5);
+      let subjectIndex = fctQuery.getViewSubjectIndex();
+      fctQuery.setSubjectCondition('eq', '27', 'http://www.w3.org/2001/XMLSchema#integer');
+      // console.log('#removeSubjectConditions: after setting condition: ', fctQuery.toXml());
+      let $conditions = fctQuery.getSubjectConditionElements(subjectIndex);
+      expect($conditions.length).to.equal(1);
+
+      fctQuery.removeSubjectConditions(subjectIndex)
+      // console.log('#removeSubjectCondition: after removing condition: XML: ', fctQuery.toXml());
+      $conditions = fctQuery.getSubjectConditionElements(subjectIndex);
+      expect($conditions.length).to.equal(0);
+    });
   });
 
 });

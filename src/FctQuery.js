@@ -243,6 +243,7 @@ export class FctQuery {
 
   /** */
   removeQueryText() {
+    // TO DO: return necessary?
     return this._root.find('query text').remove();
   }
 
@@ -941,6 +942,89 @@ export class FctQuery {
    */
   getSubjectProperties(subjectIndex) {
     throw new Error('Not implemented');
+  }
+
+  /**
+   * @summary
+   * Sets a condition on the current subject node which may be a query, property or property-of element.
+   * 
+   * @param conditionType {string} - eq | neq | gt | gte | lt | lte | range | neg_range | contains | in | not_in
+   * @param value {string} - the condition value.
+   * @param valueLang {string} - the language of the value, expressed as a two-letter (ISO 639-1) language code.
+   * @param valueDataType {string} - the XML schema datatype of the value.
+   * 
+   * @description
+   * The condition is specified using a &lt;cond&gt; element of the form:
+   * 
+   * &lt;cond type="{conditionType}" neg="{negate}" xml:lang="{valueLang}" datatype="{valueDataType}"&gt;
+   *   {value}
+   * &lt;/cond&gt;
+   * 
+   * After setting the condition, the subject node is reset to 1, the view type set to 'list' and
+   * the view offset set to 0.
+   */
+  setSubjectCondition(conditionType, value, valueDataType, valueLang = "", negate = false) {
+    // value, valueLang, valueDataType are obtained from query string 
+    // parameters val, lang and datatype respectively.
+    // 
+    // Example /fct query string:
+    // http://linkeddata.uriburner.com/fct/facet.vsp?
+    //   cmd=cond&cond_t=eq&val=2&lang=&datatype=http%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23integer&sid=883402
+    // Example FacetReactClient query string:
+    // http://localhost:8600/facet/?
+    //   action=cond&cond_t=eq&val=2&dataType=http%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23integer&lang=
+    // 
+    // Equivalent /fct PL routine: fct_set_cond().
+    // /fct:
+    //   neg ::= 'on' | '1' | 'no' | '' (What a mess!)
+    // 
+
+
+    // TO DO: Check conditionType is one of the allowed values
+    let neg = negate ? '1' : '';
+    let vdt = valueDataType;
+    if (vdt === undefined || vdt === null)
+      vdt = '';
+
+    let $subject = this.getSubjectElement();
+    let $condition = $(`<cond type="${conditionType}" neg="${neg}" xml:lang="${valueLang}" datatype="${vdt}">${value}</cond>`);
+    $subject.append($condition);
+
+    this.setViewSubjectIndex(1);
+    this.setViewOffset(0);
+    this.setViewType('list');
+  }
+
+  /**
+   * Removes all conditions on the current subject node.
+   * @param {number} index - Index (1 based) of subject node for which any attached conditions are to be removed.
+   */
+  removeSubjectConditions(index) {
+    let currentSubjectIndex = this.getViewSubjectIndex();
+    this.setViewSubjectIndex(index);
+    this.getSubjectElement().find('cond').remove();
+    this.setViewSubjectIndex(currentSubjectIndex);
+  }
+
+  /**
+   * Gets any conditions set on the current subject node. 
+   * @param {number} index - Index (1 based) of subject node for which any attached conditions are to be returned.
+   * @returns {jQueryObject}
+   */
+  getSubjectConditionElements(index) {
+    let currentSubjectIndex = this.getViewSubjectIndex();
+    this.setViewSubjectIndex(index);
+    let $conditions = this.getSubjectElement().find('cond');
+    this.setViewSubjectIndex(currentSubjectIndex);
+    return $conditions;
+  }
+
+  /**
+   * Returns the query, property or property-of element which has the current focus.
+   * @returns {jQueryObject}
+   */
+  getSubjectElement() {
+    return this._root.find('view').parent();
   }
 
 }
