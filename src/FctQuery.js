@@ -201,29 +201,18 @@ export class FctQuery {
   }
 
   set queryText(str) {
-    // TO DO:
-    // Are the different child elements of <query> / <property> / <property-of> mutually
-    // exclusive, or can they be combined? 
-    // e.g. Does setting a <text> child element require first removing an existing child elements?
+    // It's assumed that Facet XML allows only be a single <text> element
+    // and this must be a direct child of <query>.
     if (!str || str.length === 0)
       return;
     let $query = this._root.find('query');
     if ($query.length === 0)
       throw Error('query element missing');
-    // if ($(this._root.find('query > view')).attr('type') != 'list-count')
-    //  return;
-    if ($query.find('text').length === 0) {
-      // $query.append('<text class="' + ID_TEXT + '"/>');
-      $query.append('<text/>');
+    if ($query.find('text').length > 0) {
+      $query.find('text').remove();
     }
-    else
-    {
-      this.removeQueryTextProperty();
-      // TO DO: Remove all other element attributes
-    }
-
+    $query.append('<text/>');
     $query.find('text').text(str);
-    // $query.find('text').attr('label', str.split('  ').join(' ').split(' ').join(' + '));
   }
 
   /** */
@@ -237,6 +226,7 @@ export class FctQuery {
     this._root.find('query text').attr('property', propertyIri);
   }
 
+  /** */
   removeQueryTextProperty() {
     this._root.find('query text').removeAttr('property');
   }
@@ -253,6 +243,11 @@ export class FctQuery {
    */
   removeQueryFilter(filterId) {
     // TO DO
+    // Find the XML element corresponding to filterId, then remove the element.
+    let rFilterDesc = this.queryFilterDescriptors();
+    // check filterId <= rFilterDesc.length
+    let $nodeToRemove = rFilterDesc[filterId].$node;
+    $nodeToRemove.remove();
   }
 
   /** */
@@ -411,7 +406,7 @@ export class FctQuery {
   /** */
   setViewType(type) {
     // TO DO: Check the type belongs to the allowed set of values.
-    // type ::= properties | properties-in | classes | text |
+    // type ::= properties | properties-in | classes | text | text-d |
     //          list | list-count | alphabet | geo | describe |
     //          years | months | weeks 
     //
@@ -524,6 +519,7 @@ export class FctQuery {
       let predicate = opt.$currentNode.attr('exclude') === 'yes' ? 'is not a' : 'is a';
       let classUri = opt.$currentNode.attr('iri');
       let qryFilter = {
+        $node: opt.$currentNode, // jQuery object identifying the XML element - used to remove the filter. 
         template: "?${n} is [not] a {classUri}",
         s: { type: "variable", value: `?s${opt.this_s}` }, 
         p: { type: "operator", value: predicate }, // TO DO: set curie property
@@ -550,6 +546,7 @@ export class FctQuery {
         // Unadorned template/filter:
         //   ?${n} has {propertyUri} containing text {textValue}
         let qryFilter = {
+          $node: opt.$currentNode, 
           template: '?${n} has {propertyUri} containing text {textValue}',
           s: { type: "variable", value: `?s${opt.this_s}`},
           p: { type: "operator", value: `has [[${propertyUri}]] containing text` }, 
@@ -564,6 +561,7 @@ export class FctQuery {
         //   ?${n} is the subject of any predicate where the object is associated with {textValue}
         let limit = this.getViewLimit();
         let qryFilter = {
+          $node: opt.$currentNode, 
           template: '?${n} is the subject of any predicate where the object is associated with {textValue}',
           s: { type: "variable", value: `?s${opt.this_s}`},
           p: { type: "operator", value: "is the {{subjectTerm}} of any [[action0|{{predicateTerm}}]] where the {{objectTerm}} is associated with" },
@@ -591,6 +589,7 @@ export class FctQuery {
         //   ?${n} is the object of any predicate where the subject is associated with {textValue}
         let limit = this.getViewLimit();
         let qryFilter = {
+          $node: opt.$currentNode,
           template: '?${n} is the object of any predicate where the subject is associated with {textValue}',
           s: { type: "variable", value: `?s${opt.this_s}`},
           p: { type: "operator", value: "is the {{objectTerm}} of any [[action0|{{predicateTerm}}]] where the {{subjectTerm}} is associated with" },
@@ -618,6 +617,7 @@ export class FctQuery {
         //   ?${n} has any predicate with object {textValue}
         let limit = this.getViewLimit();
         let qryFilter = {
+          $node: opt.$currentNode,
           template: '?${n} has any predicate with object {textValue}',
           s: { type: "variable", value: `?s${opt.this_s}`},
           p: { type: "operator", value: "has [[action0|any {{predicateTerm}}]] with {{objectTerm}}" },
@@ -648,6 +648,7 @@ export class FctQuery {
       let predicate = opt.$currentNode.attr('exclude') === 'yes' ? 'does not have property' : '';
       let propertyUri = opt.$currentNode.attr('iri');
       let qryFilter = {
+        $node: opt.$currentNode,
         template: '?${n} [does not have property] {propertyUri} ?${n+1}',
         s: { type: "variable", value: `?s${opt.this_s}`},
         p: { type: "operator", value: `${predicate} [[${propertyUri}]]`.trim() },
@@ -669,6 +670,7 @@ export class FctQuery {
       opt.inout.max_s++;
       let propertyUri = opt.$currentNode.attr('iri');
       let qryFilter = {
+        $node: opt.$currentNode,
         template: '?${n+1} {propertyUri} ?${n}',
         s: { type: "variable", value: `?s${opt.inout.max_s}` },
         p: { type: "uri", value: propertyUri }, // TO DO: curie support
@@ -693,23 +695,87 @@ export class FctQuery {
       // Strip < > from IRIs
       let val = isIri(ttlLiteralOrIri) ? /^<(.+)>$/.exec(ttlLiteralOrIri)[1] : ttlLiteralOrIri;
       let qryFilter = {
+        $node: opt.$currentNode,
         template: '?${n} {op} ${literalOrIri}',
-        s: { type: "variable", value: `?s${opt.this_s}`},
+        s: { type: "variable", value: `?s${opt.this_s}` },
         p: { type: "operator", value: op },
         o: { type: (isIri(ttlLiteralOrIri) ? "uri" : "literal"), value: val }
       };
       opt.inout.filterDescs.push(qryFilter);
       opt.inout.cno++;
     }
+    else if (nodeName === "cond")
+    {
+      // STATUS: Incomplete
+      // Unadorned template/filter:
+      // ???
+      const conditionDisplayName = cond_t => {
+        switch (cond_t) {
+          case 'eq':
+            return "="
+          case 'neq':
+            return "!="
+          case 'lt':
+            return "<"
+          case 'lte':
+            return "<=";
+          case 'gt':
+            return ">";
+          case 'gte':
+            return ">=";
+          default:
+            return cond_t;
+        }
+      };
+
+      let cond_t = opt.$currentNode.attr('type');
+      let lang = opt.$currentNode.attr('lang');
+      let dtp = opt.$currentNode.attr('datatype');
+      let val = opt.$currentNode.text();
+
+      let prop_qual;
+      // TO DO:
+      // if (0 = xpath_eval ('count (./ancestor::*[name()=''property''])+ count(./ancestor::*[name()=''property-of'']) + count(./preceding::*[name()=''class''])', tree, 1)) 
+      //   prop_qual = ' (any property) ';
+      // else
+      prop_qual = '';
+
+      if (
+        cond_t === 'eq' ||
+        cond_t === 'neq' ||
+        cond_t === 'lt' ||
+        cond_t === 'lte' ||
+        cond_t === 'gt' ||
+        cond_t === 'gte'
+      ) {
+        let qryFilter = {
+          $node: opt.$currentNode,
+          template: '?${n} {condition} ${literal}',
+          s: { type: "variable", value: `?s${opt.this_s}` },
+          p: { type: "operator", value: `${prop_qual}${conditionDisplayName(cond_t)}` },
+          o: { type: "number", value: val }
+        };
+        opt.inout.filterDescs.push(qryFilter);
+      } 
+      else if (cond_t === 'contains')  {
+        // TO DO
+        console.log("FctQuery#queryDescription_describeNode: UNHANDLED: nodeName === 'cond', cond_t === 'contains'");
+      }
+      else if (cond_t === 'in') {
+        // TO DO
+        console.log("FctQuery#queryDescription_describeNode: UNHANDLED: nodeName === 'cond', cond_t === 'in'");
+      }
+      else if (cond_t === 'near') {
+        // TO DO
+        console.log("FctQuery#queryDescription_describeNode: UNHANDLED: nodeName === 'cond', cond_t === 'near'");
+      }
+
+      opt.inout.cno++;
+    }
     else if (nodeName === "cond-parm")
     {
       // TO DO
       console.log("FctQuery#queryDescription_describeNode: UNHANDLED: nodeName === 'cond-parm'");
-    }
-    else if (nodeName === "cond")
-    {
-      // TO DO
-      console.log("FctQuery#queryDescription_describeNode: UNHANDLED: nodeName === 'cond'");
     }
     else if (nodeName === "cond-range")
     {
@@ -948,19 +1014,17 @@ export class FctQuery {
    * @summary
    * Sets a condition on the current subject node which may be a query, property or property-of element.
    * 
-   * @param conditionType {string} - eq | neq | gt | gte | lt | lte | range | neg_range | contains | in | not_in
+   * @param conditionType {string} - eq | neq | gt | gte | lt | lte | range | neg_range | contains | in | not_in | near
    * @param value {string} - the condition value.
    * @param valueLang {string} - the language of the value, expressed as a two-letter (ISO 639-1) language code.
    * @param valueDataType {string} - the XML schema datatype of the value.
    * 
    * @description
    * The condition is specified using a &lt;cond&gt; element of the form:
-   * 
-   * &lt;cond type="{conditionType}" neg="{negate}" xml:lang="{valueLang}" datatype="{valueDataType}"&gt;
-   *   {value}
-   * &lt;/cond&gt;
-   * 
-   * After setting the condition, the subject node is reset to 1, the view type set to 'list' and
+   *   &lt;cond type="{conditionType}" neg="{negate}" xml:lang="{valueLang}" datatype="{valueDataType}"&gt;
+   *     {value}
+   *   &lt;/cond&gt;
+   * After setting the condition, the subject node is reset to 1, the view type set to 'text-d' and
    * the view offset set to 0.
    */
   setSubjectCondition(conditionType, value, valueDataType, valueLang = "", negate = false) {
@@ -992,7 +1056,7 @@ export class FctQuery {
 
     this.setViewSubjectIndex(1);
     this.setViewOffset(0);
-    this.setViewType('list');
+    this.setViewType('text-d');
   }
 
   /**
@@ -1025,6 +1089,81 @@ export class FctQuery {
    */
   getSubjectElement() {
     return this._root.find('view').parent();
+  }
+
+  /** 
+   * Adds a class filter as a child of the current subject node.
+   * Any existing class filter is overwritten.
+   * 
+   * @param {string} classIri - The IRI of the class.
+   * @param {string} [inferenceContext] - The name of the inference context to use.
+   */
+  setSubjectClass(classIri, inferenceContext = null) {
+    let $subject = this.getSubjectElement();
+    let $class = $subject.find('class');
+    if ($class.length > 0)
+      $class.remove();
+    let classAttribs = { iri: classIri };
+    if (inferenceContext)
+      classAttribs.inference = inferenceContext;
+    $class = $('<class/>', classAttribs);
+    $subject.append($class);
+  }
+
+  /** 
+   * Returns a description of any class filter attached to the current subject node. 
+   */
+  getSubjectClass() {
+    // TO DO
+  }
+
+  /**
+   * Removes any class filter attached to the current subject node.
+   */
+  removeSubjectClass() {
+    // TO DO
+  }
+
+  /**
+   * Adds a property filter as a child of the current subject node.
+   */
+  setSubjectProperty() {
+    // TO DO
+  }
+
+  /** 
+   * Returns a description of any property filter attached to the current subject node.
+   */
+  getSubjectProperty() {
+    // TO DO
+  }
+
+  /**
+   * Removes any property filter attached to the current subject node.
+   */
+  removeSubjectProperty() {
+    // TO DO
+  }
+
+  /** 
+   * Adds a property-of filter as a child of the current subject node.
+   */
+  setSubjectPropertyOf() {
+    // TO DO
+  }
+
+  /**
+   * Returns a description of any property-of filter attached to the current subject node.
+   */
+  getSubjectPropertyOf() {
+    // TO DO
+  }
+
+  /**
+   * Removes any property-of filter attached to the current subject node.
+   */
+  removeSubjectPropertyOf() {
+    // TO DO
   }
 
 }

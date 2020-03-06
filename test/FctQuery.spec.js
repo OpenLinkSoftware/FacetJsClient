@@ -8,6 +8,7 @@ import fixtureFctQry2 from './fixtures/fct_qry_2_viewtype_list-viewlevel_3-reque
 import fixtureFctQry3 from './fixtures/fct_qry_3_viewtype_list-viewlevel_3b-request.js';
 import fixtureFctQry4 from './fixtures/fct_qry_4_viewtype_list-request.js';
 import fixtureFctQry5 from './fixtures/fct_qry_5_viewtype_list-request.js';
+import fixtureFctQry6 from './fixtures/fct_qry_6_eq_condition-request.js';
 
 describe('FctQuery', () => {
   describe('#constructor', () => {
@@ -143,7 +144,7 @@ describe('FctQuery', () => {
     });
   });
 
-  describe('#queryFilterDescriptors', () => {
+  describe.only('#queryFilterDescriptors', () => {
     it('should provide SPARQL-like filter descriptors for fixture FctQry3', () => {
       let fctQuery = new FctQuery(fixtureFctQry3);
       let rFilterDesc = fctQuery.queryFilterDescriptors();
@@ -172,6 +173,20 @@ describe('FctQuery', () => {
       let rFilterDesc = fctQuery.queryFilterDescriptors();
 
       // expect(rFilterDesc.length).to.equal(8); // TO DO - Add assertions
+
+      for (const filterDesc of rFilterDesc)
+      {
+        console.log('-- Filter ----------------------------');
+        console.log(JSON.stringify(filterDesc, null, '  '));
+      };
+
+    });
+
+    it('should provide SPARQL-like filter descriptors for fixture FctQry6', () => {
+      let fctQuery = new FctQuery(fixtureFctQry6);
+      let rFilterDesc = fctQuery.queryFilterDescriptors();
+
+      // expect(rFilterDesc.length).to.equal(?); // TO DO - Add assertions
 
       for (const filterDesc of rFilterDesc)
       {
@@ -363,5 +378,33 @@ describe('FctQuery', () => {
       expect($conditions.length).to.equal(0);
     });
   });
+
+  describe.only('#removeQueryFilter', () => {
+    it('should remove the filter with the given index', () => {
+      let fctQuery = new FctQuery(fixtureFctQry5);
+      let subjectIndex = fctQuery.getViewSubjectIndex();
+      fctQuery.setSubjectCondition('eq', '27', 'http://www.w3.org/2001/XMLSchema#integer');
+      console.log('#removeQueryFilter: before removing filter: ', fctQuery.toXml());
+
+      let rFilterDesc = fctQuery.queryFilterDescriptors();
+      for (const filterDesc of rFilterDesc)
+      {
+        console.log('-- Filter ----------------------------');
+        console.log(JSON.stringify(filterDesc, null, '  '));
+      };
+
+      fctQuery.removeQueryFilter(1);
+      console.log('#removeQueryFilter: after removing filter: ', fctQuery.toXml());
+
+      rFilterDesc = fctQuery.queryFilterDescriptors();
+      for (const filterDesc of rFilterDesc)
+      {
+        console.log('-- Filter ----------------------------');
+        console.log(JSON.stringify(filterDesc, null, '  '));
+      };
+
+      expect(1).to.equal(0);
+    })
+  })
 
 });
