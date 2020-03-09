@@ -2,7 +2,7 @@ import $ from "./jquery.module.js";
 import { FctResult } from '../src/FctResult.js';
 
 // Fixed defaults
-const  FCT_QRY_DFLT_VIEW_TYPE = "text";
+const  FCT_QRY_DFLT_VIEW_TYPE = "text-d";
 
 // Configurable defaults
 // TO DO
@@ -201,7 +201,7 @@ export class FctQuery {
   }
 
   set queryText(str) {
-    // It's assumed that Facet XML allows only be a single <text> element
+    // It's assumed that Facet XML allows only a single <text> element
     // and this must be a direct child of <query>.
     if (!str || str.length === 0)
       return;
@@ -242,12 +242,18 @@ export class FctQuery {
    * @param {integer} filterId - A 0-based ID identifying the filter.
    */
   removeQueryFilter(filterId) {
-    // TO DO
-    // Find the XML element corresponding to filterId, then remove the element.
     let rFilterDesc = this.queryFilterDescriptors();
-    // check filterId <= rFilterDesc.length
+    if (filterId < 0 || filterId >= rFilterDesc.length)
+      throw new Error(`filterId (${filterId}) out of range`);
+    const limit = this.getViewLimit();
     let $nodeToRemove = rFilterDesc[filterId].$node;
     $nodeToRemove.remove();
+    // If the removed node contained the view element, a new view element
+    // must be created at the top level because this element must always exist.
+    if (this._root.find('view').length === 0) {
+      let $replacementView = $(`<view type="${FctQuery.FCT_QRY_DFLT_VIEW_TYPE}" limit="${limit}" offset="0"/>`);
+      this._root.find('query').append($replacementView);
+    }
   }
 
   /** */
