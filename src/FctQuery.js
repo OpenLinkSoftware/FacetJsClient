@@ -256,15 +256,28 @@ export class FctQuery {
     }
   }
 
-  /** */
+  /** 
+   * Returns the current limit on the number of rows returned by a query.
+   * A limit of 0 indicates no limit. 
+   */
   getViewLimit() {
-    return parseInt(this._root.find('view').attr('limit'));
+    let limit = parseInt(this._root.find('view').attr('limit'));
+    if (Number.isNaN(limit)) // limit attribute is not present, i.e. no limit
+      limit = 0;
+    return limit;
   }
 
-  /** */
-  setViewLimit(lim) {
-    // TO DO: Check limit is positive int
-    this._root.find('view').attr('limit', lim);
+  /** 
+   * Sets a limit on the number of rows returned by a query.
+   * A limit of 0 indicates no limit. 
+   */
+  setViewLimit(limit) {
+    if (typeof limit !== 'number' || !Number.isInteger(limit) || limit < 0)
+      throw new Error ('limit must be a positive integer');
+    if (limit === 0)
+      this._root.find('view').removeAttr('limit');
+    else
+      this._root.find('view').attr('limit', limit);
   }
 
   /** */
