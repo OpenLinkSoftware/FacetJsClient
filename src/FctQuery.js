@@ -13,11 +13,15 @@ export let FCT_QRY_DFLT_VIEW_LIMIT = 50;
 // export let FCT_QRY_DFLT_SVC_ENDPOINT = 'http://localhost:8896/fct/service';
 export let FCT_QRY_DFLT_SVC_ENDPOINT = 'http://linkeddata.uriburner.com/fct/service';
 
+// export let DESCRIBE_DFLT_SVC_ENDPOINT = 'http://localhost:8896/describe/';
+export let DESCRIBE_DFLT_SVC_ENDPOINT = 'http://linkeddata.uriburner.com/describe/';
+
 // TO DO:
 // Look for default overrides set through a config.js file.
 // FCT_QRY_DFLT_VIEW_LIMIT = xxx
 // FCT_QRY_AJAX_TIMEOUT = xxx
 // FCT_QRY_DFLT_SVC_ENDPOINT = xxx
+// DESCRIBE_DFLT_SVC_ENDPOINT = xxx
 
 const ID_QUERY = "0";
 const ID_TEXT = "1";
@@ -47,6 +51,13 @@ export class FctQuery {
    */
   static get FCT_QRY_DFLT_SVC_ENDPOINT() {
     return FCT_QRY_DFLT_SVC_ENDPOINT;
+  }
+
+  /**
+   * Class constant
+   */
+  static get DESCRIBE_DFLT_SVC_ENDPOINT() {
+    return DESCRIBE_DFLT_SVC_ENDPOINT;
   }
 
   /** 
