@@ -144,7 +144,7 @@ describe('FctQuery', () => {
     });
   });
 
-  describe.only('#queryFilterDescriptors', () => {
+  describe('#queryFilterDescriptors', () => {
     it('should provide SPARQL-like filter descriptors for fixture FctQry3', () => {
       let fctQuery = new FctQuery(fixtureFctQry3);
       let rFilterDesc = fctQuery.queryFilterDescriptors();
@@ -379,7 +379,7 @@ describe('FctQuery', () => {
     });
   });
 
-  describe.only('#removeQueryFilter', () => {
+  describe('#removeQueryFilter', () => {
     it('should remove the filter with the given index', () => {
       let fctQuery = new FctQuery(fixtureFctQry5);
       let subjectIndex = fctQuery.getViewSubjectIndex();
@@ -404,7 +404,54 @@ describe('FctQuery', () => {
       };
 
       expect(1).to.equal(0);
-    })
-  })
+    });
+  });
+
+  describe.only('#addPropertyOf', () => {
+    it ('for subject node ?s1', () => {
+      const query1target = `
+        <?xml version="1.0"?>
+        <query xmlns="http://openlinksw.com/services/facets/1.0">
+          <class iri="http://xmlns.com/foaf/0.1/Person" />
+          <property-of iri="http://xmlns.com/foaf/0.1/knows">
+            <property-of iri="http://xmlns.com/foaf/0.1/knows">
+              <property iri="http://xmlns.com/foaf/0.1/name">
+                <value>"Melvin Carvalho"</value>
+              </property>
+            </property-of>
+          </property-of>
+          <view type="list" limit="100" />
+        </query>
+      `;
+
+      const query1 = `
+      <?xml version="1.0"?>
+      <query xmlns="http://openlinksw.com/services/facets/1.0">
+        <class iri="http://xmlns.com/foaf/0.1/Person" />
+        <view type="list" limit="100" />
+      </query>
+    `;
+
+      let subjIndx // The subject index introduced by a new property or property-of element.
+      let fctQuery = new FctQuery(query1);
+
+      subjIndx = fctQuery.addPropertyOf('http://xmlns.com/foaf/0.1/knows', 1);
+      expect(subjIndx).to.equal(2);
+      
+      subjIndx = fctQuery.addPropertyOf('http://xmlns.com/foaf/0.1/knows', 2);
+      expect(subjIndx).to.equal(3);
+
+      subjIndx = fctQuery.addProperty('http://xmlns.com/foaf/0.1/name', 3);
+      expect(subjIndx).to.equal(4);
+
+      fctQuery.setViewSubjectIndex(subjIndx);
+      fctQuery.setSubjectValue("eq", 'Melvin Carvalho');
+      // TO DO: Add assertions
+
+      console.log(`XML:`, fctQuery.toXml()); // TO DO: Remove
+
+      // fctQuery.setViewOffset(0);
+    });
+  });
 
 });

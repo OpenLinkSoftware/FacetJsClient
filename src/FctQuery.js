@@ -872,76 +872,31 @@ export class FctQuery {
    * 
    * propertyUri - The URI of the property. 
    * subjectIndex - The index of the implicit subject that the property will belong to.
-   * exclude - If true, sets attribute exclude="yes".
+   * exclude - If true, sets attribute exclude="yes". If false, omits the attribute.
    * sameAs - If true, sets attribute same_as="yes". If false, omits the attribute.
    * inferenceContext - The name of the inference context to use. If present, sets attribute inference="{inferenceContext}".
    * 
    * returns the subjectIndex of the scope enclosed by the new property element
    */
   addProperty(propertyUri, subjectIndex, exclude = false, sameAs = false, inferenceContext = null) {
+    // See also: setSubjectProperty()
+    return this.addPropertyOrPropertyOf('property', propertyUri, subjectIndex, exclude, sameAs, inferenceContext);
+  }
 
-    // The subjectIndex of the scope enclosed by the new property element is not necessarily subjectIndex + 1.
-    // There could be a pre-existing sibling property element preceding the newly added property element. 
-    // e.g. ?s3 and ?s4 (subject indexes 3 and 4 respectively) in the example XML below.
-    // Consider the case where we've just added <property iri="http://schema.org/itemOffered"/>
-    // In this case: subjectIndex = 2, propSubjIndx = 4.
-    //
-    // <?xml version="1.0"?>
-    // <query xmlns="http://openlinksw.com/services/facets/1.0">
-    //   <!-- Nesting level 1: implied variable ?s1 -->
-    //   <class iri="http://schema.org/Business" />
-    //   <property iri="http://schema.org/makesOffer">
-    //     <!-- Nesting level 2: implied variable ?s2 -->
-    //     <property iri="http://schema.org/businessFunction">
-    //       <!-- Nesting level 3.1: implied variable ?s3 -->
-    //       <value datatype="uri">http://purl.org/goodrelations/v1#Dispose</value>
-    //     </property>
-    //     <property iri="http://schema.org/itemOffered">
-    //       <!-- Nesting level 3.2: implied variable ?s4 -->
-    //       <view type="list" limit="100" />
-    //       <class iri="http://schema.org/Product" />
-    //       <property iri="http://schema.org/material">
-    //         <!-- Nesting level 4: implied variable ?s5 -->
-    //         <value>asbestos</value>
-    //       </property>
-    //     </property>
-    //   </property>
-    // </query>
-
-   /*
-    * Returns the subject node index of the context introduced by a 
-    * query, property or property-of element.
-    */
-   let getPropertySubjectIndex = $prop => {
-      let indx = 0;
-      let $e = this._root.find('query, property, property-of');
-      $e.each((index, element) => {
-        indx = index + 1;
-        if ($(element) === $prop)
-          return false;
-        return true;  
-      });
-      return indx;
-    };
-
-    if (subjectIndex > this.getSubjectCount())
-      throw new Error(`subjectIndex (${subjectIndex}) out of range.`);
-
-    let newPropAttribs = { iri: propertyUri };
-    if (exclude)
-      newPropAttribs.exclude = "yes";
-    if (sameAs)
-      newPropAttribs.same_as = "yes";
-    if (inferenceContext)
-      newPropAttribs.inference = inferenceContext;
-    let $newProp = $('<property/>', newPropAttribs);
-    // console.log('FctQuery#addProperty: Appending property:', $newProp)
-    let $parent = this.getSubjectParentElement(subjectIndex);
-    // console.log('FctQuery#addProperty: XML before adding property:', this.toXml());
-    $parent.append($newProp);
-    // console.log('FctQuery#addProperty: XML after adding property:', this.toXml());
-    
-    return getPropertySubjectIndex($newProp);
+  /**
+   * Adds a property-of element.
+   * 
+   * propertyUri - The URI of the property. 
+   * subjectIndex - The index of the implicit subject that the property will belong to.
+   * exclude - If true, sets attribute exclude="yes". If false, omits the attribute.
+   * sameAs - If true, sets attribute same_as="yes". If false, omits the attribute.
+   * inferenceContext - The name of the inference context to use. If present, sets attribute inference="{inferenceContext}".
+   * 
+   * returns the subjectIndex of the scope enclosed by the new property-of element
+   */
+  addPropertyOf(propertyUri, subjectIndex, exclude = false, sameAs = false, inferenceContext = null) {
+    // See also: setSubjectPropertyOf()
+    return this.addPropertyOrPropertyOf('property-of', propertyUri, subjectIndex, exclude, sameAs, inferenceContext);
   }
 
   /**
@@ -1046,8 +1001,8 @@ export class FctQuery {
    * 
    * @param conditionType {string} - eq | neq | gt | gte | lt | lte | range | neg_range | contains | in | not_in | near
    * @param value {string} - the condition value.
-   * @param valueLang {string} - the language of the value, expressed as a two-letter (ISO 639-1) language code.
    * @param valueDataType {string} - the XML schema datatype of the value.
+   * @param valueLang {string} - the language of the value, expressed as a two-letter (ISO 639-1) language code.
    * 
    * @description
    * The condition is specified using a &lt;cond&gt; element of the form:
@@ -1056,6 +1011,8 @@ export class FctQuery {
    *   &lt;/cond&gt;
    * After setting the condition, the subject node is reset to 1, the view type set to 'text-d' and
    * the view offset set to 0.
+   * 
+   * @see setSubjectValue
    */
   setSubjectCondition(conditionType, value, valueDataType, valueLang = "", negate = false) {
     // value, valueLang, valueDataType are obtained from query string 
@@ -1073,7 +1030,6 @@ export class FctQuery {
     //   neg ::= 'on' | '1' | 'no' | '' (What a mess!)
     // 
 
-
     // TO DO: Check conditionType is one of the allowed values
     let neg = negate ? '1' : '';
     let vdt = valueDataType;
@@ -1081,6 +1037,11 @@ export class FctQuery {
       vdt = '';
 
     let $subject = this.getSubjectElement();
+
+    // Remove any existing cond element
+    // Can multiple value elements be present provided the conditions don't conflict?
+    $subject.find('cond').remove();
+
     let $condition = $(`<cond type="${conditionType}" neg="${neg}" xml:lang="${valueLang}" datatype="${vdt}">${value}</cond>`);
     $subject.append($condition);
 
@@ -1158,7 +1119,10 @@ export class FctQuery {
    * Adds a property filter as a child of the current subject node.
    */
   setSubjectProperty() {
-    // TO DO
+    // TO DO?
+    // Redundant? See also addProperty().
+    // Rename addProperty to setSubjectProperty()?
+    // set/get/removeSubjectProperty provides a more consistent naming scheme than addProperty.
   }
 
   /** 
@@ -1179,7 +1143,11 @@ export class FctQuery {
    * Adds a property-of filter as a child of the current subject node.
    */
   setSubjectPropertyOf() {
-    // TO DO
+    // TO DO?
+    // Redundant? See also addPropertyOf().
+    // Rename addPropertyOf to setSubjectPropertyOf()?
+    // set/get/removeSubjectPropertyOf provides a more consistent naming scheme than addPropertyOf.
+
   }
 
   /**
@@ -1196,4 +1164,136 @@ export class FctQuery {
     // TO DO
   }
 
+  // -- Private methods -----------------------------------------------------
+
+  /**
+   * @private
+   * Adds a property or property-of element.
+   * 
+   * propertyName - The name of the element: "property" or "property-of"
+   * propertyUri - The URI of the property. 
+   * subjectIndex - The index of the implicit subject that the property or property-of element will belong to.
+   * exclude - If true, sets attribute exclude="yes".
+   * sameAs - If true, sets attribute same_as="yes". If false, omits the attribute.
+   * inferenceContext - The name of the inference context to use. If present, sets attribute inference="{inferenceContext}".
+   * 
+   * returns the subjectIndex of the scope enclosed by the new property or property-of element
+   */
+  addPropertyOrPropertyOf(propertyName, propertyUri, subjectIndex, exclude = false, sameAs = false, inferenceContext = null) {
+    // The subjectIndex of the scope enclosed by the new property element is not necessarily subjectIndex + 1.
+    // There could be a pre-existing sibling property element preceding the newly added property element. 
+    // e.g. ?s3 and ?s4 (subject indexes 3 and 4 respectively) in the example XML below.
+    // Consider the case where we've just added <property iri="http://schema.org/itemOffered"/>
+    // In this case: subjectIndex = 2, propSubjIndx = 4.
+    //
+    // <?xml version="1.0"?>
+    // <query xmlns="http://openlinksw.com/services/facets/1.0">
+    //   <!-- Nesting level 1: implied variable ?s1 -->
+    //   <class iri="http://schema.org/Business" />
+    //   <property iri="http://schema.org/makesOffer">
+    //     <!-- Nesting level 2: implied variable ?s2 -->
+    //     <property iri="http://schema.org/businessFunction">
+    //       <!-- Nesting level 3.1: implied variable ?s3 -->
+    //       <value datatype="uri">http://purl.org/goodrelations/v1#Dispose</value>
+    //     </property>
+    //     <property iri="http://schema.org/itemOffered">
+    //       <!-- Nesting level 3.2: implied variable ?s4 -->
+    //       <view type="list" limit="100" />
+    //       <class iri="http://schema.org/Product" />
+    //       <property iri="http://schema.org/material">
+    //         <!-- Nesting level 4: implied variable ?s5 -->
+    //         <value>asbestos</value>
+    //       </property>
+    //     </property>
+    //   </property>
+    // </query>
+
+    /*
+     * Returns the subject node index of the context introduced by a 
+     * query, property or property-of element.
+     */
+    let getPropertySubjectIndex = $prop => {
+      let indx = 0;
+      let $e = this._root.find('query, property, property-of');
+      $e.each((index, element) => {
+        indx = index + 1;
+        if ($(element) === $prop)
+          return false;
+        return true;
+      });
+      return indx;
+    };
+
+    if (!['property', 'property-of'].includes(propertyName))
+      throw new Error (`propertyName (${propertyName}) out of range.`);
+    if (subjectIndex > this.getSubjectCount())
+      throw new Error(`subjectIndex (${subjectIndex}) out of range.`);
+
+    let newPropAttribs = { iri: propertyUri };
+    if (exclude)
+      newPropAttribs.exclude = "yes";
+    if (sameAs)
+      newPropAttribs.same_as = "yes";
+    if (inferenceContext)
+      newPropAttribs.inference = inferenceContext;
+    let $newProp = $(`<${propertyName}/>`, newPropAttribs);
+    let $parent = this.getSubjectParentElement(subjectIndex);
+    $parent.append($newProp);
+    return getPropertySubjectIndex($newProp);
+  }
+  
+  /**
+   * Sets a condition on the current subject node which may be a query, property or property-of element.
+   * 
+   * @param {string} value - the condition value.
+   * @param {string} [conditionType='eq'] - eq | neq | gt | gte | lt | lte | range | neg_range | contains | in | not_in | near
+   * @param {string} [valueDataType=''] - the XML schema datatype of the value.
+   * @param {string} [valueLang=''] - the language of the value, expressed as a two-letter (ISO 639-1) language code.
+   * 
+   * @description
+   * The condition is specified using a &lt;value&gt; element of the form:
+   *   &lt;value type="{conditionType}" neg="{negate}" xml:lang="{valueLang}" datatype="{valueDataType}"&gt;
+   *     {value}
+   *   &lt;/value&gt;
+   *  {value} must be enclosed in quotes. (A /fct bug.)
+   * 
+   * After setting the condition, the subject node is reset to 1 and the view offset set to 0.
+   * 
+   * @see setSubjectCondition
+   */
+  setSubjectValue(
+    value,
+    conditionType = "eq",
+    valueDataType = "",
+    valueLang = "",
+  ) {
+    // TO DO: Document <value> and <cond>.
+    // Element <value> is similar to <cond>. It accepts the same attributes
+    // 'datatype', 'xml:lang' and 'op', but not 'neg'.
+
+    // ISSUE: 
+    // the content of <value> must be quoted, otherwise /fct returns nothing.
+    if (!value || (typeof value !== 'string'))
+      throw new Error("value parameter must be a non-empty string.");
+
+    let val = value;
+    if (!(val.startsWith('"') && val.endsWith('"')))
+      val = '"' + val + '"';
+
+    // TO DO: Check conditionType is one of the allowed values
+    let vdt = valueDataType;
+    if (vdt === undefined || vdt === null)
+      vdt = '';
+
+    // If attribute type is omitted, /fct assumes op="eq". 
+    // Remove any existing value element
+    // Can multiple value elements be present provided the conditions don't conflict?
+    let $subject = this.getSubjectElement();
+    $subject.find('value').remove();
+    let $value = $(`<value type="${conditionType}" xml:lang="${valueLang}" datatype="${vdt}">${val}</value>`);
+    $subject.append($value);
+
+    this.setViewSubjectIndex(1);
+    this.setViewOffset(0);
+  }
 }
