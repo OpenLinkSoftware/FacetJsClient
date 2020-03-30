@@ -1,5 +1,6 @@
 import { FctQuery } from '../src/FctQuery.js';
 import { FctResult } from '../src/FctResult.js';
+import { FctError } from '../src/FctError.js';
 import { fct_test_env }  from './test.conf.js';
 import $ from "../src/jquery.module.js";
 
@@ -99,9 +100,10 @@ describe('FctQuery', () => {
     });
   });
 
-  describe.skip('#execute', () => {
-    it('should return a FctResult instance on success', async () => {
+  describe.only('#execute', () => {
+    it.skip('should return a FctResult instance on success', async () => {
       const fctQuery = new FctQuery();
+      console.log(fct_test_env);
       fctQuery.setServiceEndpoint(fct_test_env.fct_test_endpoint);
       fctQuery.queryText = 'virtuoso';
       fctQuery.setViewLimit(50);
@@ -110,6 +112,28 @@ describe('FctQuery', () => {
       // console.log('#execute: qryResult:', qryResult);
       expect(qryResult instanceof FctResult).to.be.true;
       expect(/^select /.test(qryResult.sparql)).to.be.true;
+    });
+
+    it('should return an FctError instance on failure', async () => {
+      // badXml: <view> element is missing.
+      const badXml = `
+        <?xml version="1.0"?>
+        <query xmlns="http://openlinksw.com/services/facets/1.0">
+          <text>skiing</text>
+        </query>`;
+      
+      const fctQuery = new FctQuery(badXml);
+      fctQuery.setServiceEndpoint(fct_test_env.fct_test_endpoint);
+      try {
+        await fctQuery.execute();
+      }
+      catch (error)
+      {
+        // console.log(JSON.stringify(error, null, 2));
+        error.should.have.property("name", "FctError");
+        error.should.have.property("httpStatusCode", 500);
+        error.should.have.property("responseJson");
+      }
     });
   });
 
@@ -407,7 +431,7 @@ describe('FctQuery', () => {
     });
   });
 
-  describe.only('#addPropertyOf', () => {
+  describe('#addPropertyOf', () => {
     it ('for subject node ?s1', () => {
       const query1target = `
         <?xml version="1.0"?>

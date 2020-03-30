@@ -1,5 +1,7 @@
 import $ from "./jquery.module.js";
-import { FctResult } from '../src/FctResult.js';
+import { FctResult } from './FctResult.js';
+import { FctError } from './FctError.js';
+import JXON from "./JXON.js";
 
 // Fixed defaults
 const  FCT_QRY_DFLT_VIEW_TYPE = "text-d";
@@ -447,7 +449,8 @@ export class FctQuery {
   /**
    * Executes the Facet query described by the FctQuery instance.
    * 
-   * @returns {Promise} A FctResult instance containing the query result or an Error.
+   * @returns {Promise} A FctResult instance containing the query result or a FctError.
+   * @see FctError
    */
   execute() {
     /* Example usage in an event handler ...
@@ -484,10 +487,18 @@ export class FctQuery {
       };
 
       function errorHndlr(jqXHR, textStatus, errorThrown) {
-        let status = textStatus || 'unknown';
-        let httpStatus = errorThrown || 'unknown';
-        let msg = `Ajax request failed. Status: ${status}, HTTP Status: ${httpStatus}`;
-        reject(new Error(msg)); 
+        let httpStatusText = errorThrown || 'unknown';
+        let httpStatusCode = jqXHR.status;
+        // let statusText = textStatus || 'unknown';
+        // let responseHeaders = jqXHR.getAllResponseHeaders();
+        reject(new FctError(
+          "Ajax request failed.", 
+          httpStatusText, 
+          httpStatusCode, 
+          jqXHR.responseText, 
+          jqXHR.responseXML
+          )
+        ); 
       };
     });
   }
@@ -907,26 +918,7 @@ export class FctQuery {
    * child element in order to be counted as introducing a new subject node.
    * The child element could be added at a later time before query submission.
    */
-  /* TO DO: Incorrect earlier variant - REMOVE 
   getSubjectCount() {
-
-    let cSubjects = 1;
-    let countDescendentLevels = $n => {
-      // console.log('getSubjectCount: tag:', $n[0].tagName, ', cSubjects:',  cSubjects);
-      $n.children().each((idx, el) => {
-        if ($(el).children().length > 0) {
-          cSubjects++;
-          countDescendentLevels($(el));
-        }
-      });
-    };
-
-    let $node = this._root.find('query');
-    countDescendentLevels($node);
-    return cSubjects;
-  }
-  */
- getSubjectCount() {
   let cSubjects = 1;
   let traverseChildren = $n => {
     // console.log('getSubjectCount: current tag:', $n[0].tagName, ', cSubjects:',  cSubjects);

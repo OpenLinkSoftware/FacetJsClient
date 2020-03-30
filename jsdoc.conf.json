@@ -1,6 +1,6 @@
 {
   "source": {
-    "include": ["src/FctQuery.js", "src/FctResult.js", "src/JXON.js"]
+    "include": ["src/FctQuery.js", "src/FctResult.js", "src/FctError.js", "src/JXON.js"]
   },
   "sourceType": "module",
   "opts": {
