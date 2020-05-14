@@ -206,7 +206,11 @@ export class FctQuery {
   }
 
   /** 
-   * The text to query on.
+   * @summary
+   * Get/set the search text for Facet to query on.
+   * @description
+   * This accessor property gets/sets the text pattern contained in the
+   * <code>&lt;text&gt;</code> element of the Facet input XML.
    * @type {string} 
    */
   get queryText() {
@@ -228,12 +232,20 @@ export class FctQuery {
     $query.find('text').text(str);
   }
 
-  /** */
+  /**
+   * @summary
+   * Get/set the <code>property</code> attribute of the <code>&lt;text&gt;</code> element.
+   * @description
+   * Attribute <code>property</code> must contain a URL.
+   * If the attribute is set, the text pattern searched for by Facet
+   * must occur as a value of this property. If not set, the search text can appear
+   * as the value of any property. 
+   * @type {string} 
+   */
   get queryTextProperty() {
     return this._root.find('query text').attr('property');
   }
 
-  /** */
   set queryTextProperty(propertyIri) {
     // TO DO: Check propertyIri is an IRI
     this._root.find('query text').attr('property', propertyIri);
@@ -272,6 +284,8 @@ export class FctQuery {
   /** 
    * Returns the current limit on the number of rows returned by a query.
    * A limit of 0 indicates no limit. 
+   * @returns {number}
+   * @see setViewLimit
    */
   getViewLimit() {
     let limit = parseInt(this._root.find('view').attr('limit'));
@@ -283,6 +297,8 @@ export class FctQuery {
   /** 
    * Sets a limit on the number of rows returned by a query.
    * A limit of 0 indicates no limit. 
+   * @param {number} limit - The number of rows to restrict the query result to.
+   * @see getViewLimit
    */
   setViewLimit(limit) {
     if (typeof limit !== 'number' || !Number.isInteger(limit) || limit < 0)
@@ -293,12 +309,20 @@ export class FctQuery {
       this._root.find('view').attr('limit', limit);
   }
 
-  /** */
+  /** 
+   * Get the current view offset.
+   * @returns {number}
+   * @see setViewOffset
+   */
   getViewOffset() {
     return parseInt(this._root.find('view').attr('offset'));
   }
 
-  /** */
+  /** 
+   * Skips the given number of matches from the start of the query result.
+   * @param {number} offset - The number of result set rows to skip.
+   * @see getViewOffset
+   */
   setViewOffset(offset) {
     // TO DO: Check offset is positive int
     this._root.find('view').attr('offset', offset);
@@ -317,18 +341,17 @@ export class FctQuery {
    * @returns {string}
    * 
    * @description
-   * The returned string may be an RDF literal or an IRI. 
+   * <p>The returned string may be an RDF literal or an IRI.
+   * A literal may have an accompanying datatype (e.g. <code>^^&lt;int&gt;</code>) 
+   * or a language tag (e.g. <ccode>@fr</code>), depending on the <value> 
+   * element's @datatype or @lang attribute value.</p>
    * 
-   * A literal may have an accompanying datatype (e.g. ^^&lt;int&gt;) or a language tag (e.g. @fr),
-   * depending on the <value> element's @datatype or @lang attribute value.
-   * 
-   * IRIs are returned wrapped by angle brackets.
-   * 
+   * <p>IRIs are returned wrapped by angle brackets.
    * An IRI value is indicated by the presence of a "^^&lt;uri&gt;" type specifier attached to the
-   * &lt;value&gt; element's contents, or by a @datatype attribute value of "uri", "url" or "iri".
+   * &lt;value&gt; element's contents, or by a @datatype attribute value of "uri", "url" or "iri".</p>
    * 
-   * The text of the &lt;value&gt; element is specified either as the content of the element, or
-   * in a @val attribute with an empty element.
+   * <p>The text of the &lt;value&gt; element is specified either as the content of the element, or
+   * in a @val attribute with an empty element.</p>
    */
   getValueAsTurtle($valueElement) {
     // Equivalent of /fct PL routine fct_literal()
@@ -379,29 +402,29 @@ export class FctQuery {
    * @returns {number}
    * 
    * @description
-   * Returns the index n of the effective subject node sn of the current view.
+   * An index n is returned where n is the effective subject node sn of the current view.<br>
    * e.g. n = 1, 2 ... n identifies subject nodes s1, s2 ... sn
    * 
-   * A &lt;query&gt;, &lt;property&gt; or &lt;property-of&gt; element equates to a subject-arc
-   * pair:
-   *   sn --(query)-->, sn --(property)--> or sn --(property-of)--> 
-   * in the 'metagraph' described by the Facet input XML.
+   * <p>A &lt;query&gt;, &lt;property&gt; or &lt;property-of&gt; element equates to a subject-arc
+   * pair:<br>
+   * <code>sn --(query)-->, sn --(property)--> or sn --(property-of)--></code><br>
+   * in the 'metagraph' described by the Facet input XML.</p>
    * 
-   * The single &lt;view&gt; element allowed in the input XML can be a child of
+   * <p>The single &lt;view&gt; element allowed in the input XML can be a child of
    * &lt;query&gt;, &lt;property&gt; or &lt;property-of&gt;. The position of the &lt;view&gt; element
    * implicitly identifies the sn should have the current focus in the Facet UI
    * when adding or removing filters. The sn appear in the SPARQL corresponding
-   * to the input XML as subject node variables, ?s1, ?s2 etc.
+   * to the input XML as subject node variables, ?s1, ?s2 etc.</p>
    * 
-   * The position of the &lt;view&gt; element also specifies which sn is presented in 
+   * <p>The position of the &lt;view&gt; element also specifies which sn is presented in 
    * the result set by adjusting the select list of the query described by the XML. 
    * The result set can serve as a pick list for setting filters on sn to further 
-   * refine the search for the set of entities identified by s1.
+   * refine the search for the set of entities identified by s1.</p>
    * 
-   * Each &lt;query&gt;, &lt;property&gt; or &lt;property-of&gt; element implicitly introduces
+   * <p>Each &lt;query&gt;, &lt;property&gt; or &lt;property-of&gt; element implicitly introduces
    * a new sn. We can identifiy the sn (or rather n) which the &lt;view&gt; element 
    * identifies as having the current focus by counting the occurrences of 
-   * these elements until we reach one of them which has &lt;view&gt; as a child.
+   * these elements until we reach one of them which has &lt;view&gt; as a child.</p>
    */
   getViewSubjectIndex() {
     // Equivalent to /fct PL routine fct_view_pos() // TO DO: Remove
@@ -832,17 +855,17 @@ export class FctQuery {
    * @returns {object[]} Array of objects describing the query filters
    * 
    * @description
-   * Each element of the returned array contains a filter condition descriptor.
+   * <p>Each element of the returned array contains a filter condition descriptor.
    * The filter conditions are deliberately held in separate array elements so 
    * that the UI can associate controls with each filter, to allow a user to 
-   * manipulate each individually, e.g. a button to drop a particular filter.
+   * manipulate each individually, e.g. a button to drop a particular filter.</p>
    * 
-   * FctQuery is intended to be UI independent.
-   * queryFilterDescriptors returns descriptors in the form of
-   * SPARQL-like subject + predicate + object property sets.
-   * These s-p-o properties may contain placeholders in order to keep
+   * <p>FctQuery is intended to be UI independent.
+   * <code>queryFilterDescriptors</code> returns descriptors in the form of
+   * SPARQL-like<br> <code>subject + predicate + object</code> property sets.
+   * These <code>s-p-o</code> properties may contain placeholders in order to keep
    * FctQuery independent of the UI and so that values for these placeholders
-   * can be injected later by the UI layer.
+   * can be injected later by the UI layer.</p>
    */
   queryFilterDescriptors() {
     // Equivalent to /fct PL routine fct_top()
@@ -879,15 +902,16 @@ export class FctQuery {
   }
 
   /**
-   * Adds a property element.
+   * Adds a <code>&lt;property&gt;</code> element to the Facet input XML.
    * 
-   * propertyUri - The URI of the property. 
-   * subjectIndex - The index of the implicit subject that the property will belong to.
-   * exclude - If true, sets attribute exclude="yes". If false, omits the attribute.
-   * sameAs - If true, sets attribute same_as="yes". If false, omits the attribute.
-   * inferenceContext - The name of the inference context to use. If present, sets attribute inference="{inferenceContext}".
+   * @param {string} propertyUri - The URI of the property. 
+   * @param {number} subjectIndex - The index of the implicit subject that the property will belong to.
+   * @param {boolean} exclude - If true, sets attribute exclude="yes". If false, omits the attribute.
+   * @param {boolean} sameAs - If true, sets attribute same_as="yes". If false, omits the attribute.
+   * @param {string} inferenceContext - The name of the inference context to use. 
+   *     If present, sets attribute <code>inference="{inferenceContext}"</code>.
    * 
-   * returns the subjectIndex of the scope enclosed by the new property element
+   * @returns {number} The subject index of the scope enclosed by the new <code>&lt;property&gt;</code> element
    */
   addProperty(propertyUri, subjectIndex, exclude = false, sameAs = false, inferenceContext = null) {
     // See also: setSubjectProperty()
@@ -895,15 +919,16 @@ export class FctQuery {
   }
 
   /**
-   * Adds a property-of element.
+   * Adds a <code>&lt;property-of&gt;</code> element to the Facet input XML.
    * 
-   * propertyUri - The URI of the property. 
-   * subjectIndex - The index of the implicit subject that the property will belong to.
-   * exclude - If true, sets attribute exclude="yes". If false, omits the attribute.
-   * sameAs - If true, sets attribute same_as="yes". If false, omits the attribute.
-   * inferenceContext - The name of the inference context to use. If present, sets attribute inference="{inferenceContext}".
+   * @param {string} propertyUri - The URI of the property. 
+   * @param {number} subjectIndex - The index of the implicit subject that the property will belong to.
+   * @param {boolean} exclude - If true, sets attribute exclude="yes". If false, omits the attribute.
+   * @param {boolean} sameAs - If true, sets attribute same_as="yes". If false, omits the attribute.
+   * @param {string} inferenceContext - The name of the inference context to use. 
+   *     If present, sets attribute inference="{inferenceContext}".
    * 
-   * returns the subjectIndex of the scope enclosed by the new property-of element
+   * @returns {number} The subject index of the scope enclosed by the new <code>&lt;property-of&gt;</code> element
    */
   addPropertyOf(propertyUri, subjectIndex, exclude = false, sameAs = false, inferenceContext = null) {
     // See also: setSubjectPropertyOf()
@@ -911,10 +936,15 @@ export class FctQuery {
   }
 
   /**
-   * Returns the number of subject nodes in the query XML.
+   * @summary
+   * The number of subject nodes in the query XML.
    * 
+   * @returns {number}
+   * 
+   * @description
    * An implicit subject node is introduced by an appropriate enclosing element 
-   * (query, property, property-of). property and property-of need not have a
+   * (<code>query</code>, <code>property</code>, <code>property-of</code>). 
+   * <code>property</code> and <code>property-of</code> need not have a
    * child element in order to be counted as introducing a new subject node.
    * The child element could be added at a later time before query submission.
    */
@@ -940,8 +970,15 @@ export class FctQuery {
 }
 
   /**
-   * Returns the element which provides the context for a subject node. 
-   * i.e. The parent element which wraps the subject node.
+   * @summary
+   * Get the parent element of a subject node.
+   * 
+   * @param {number} subjectIndex - The index of the subject node.
+   * 
+   * @returns {jQueryObject} A jQuery object containing the parent element.
+   * 
+   * @description
+   * Returns the element which provides the context for a given subject node.
    */
   getSubjectParentElement(subjectIndex) {
     // console.log('FctQuery#getSubjectParentElement: in: subjectIndex:', subjectIndex);
@@ -980,8 +1017,11 @@ export class FctQuery {
   }
 
   /**
-   * Returns any property elements which are the immediate children of 
+   * Returns any <code>&lt;property&gt;</code> elements which are the immediate children of 
    * a subject node.
+   * 
+   * @param {number} subjectIndex - The index of the subject node.
+   * @returns {jQueryObject} A jQuery object containing the child <code>&lt;property&gt;</code> elements.
    */
   getSubjectProperties(subjectIndex) {
     throw new Error('Not implemented');
@@ -989,22 +1029,24 @@ export class FctQuery {
 
   /**
    * @summary
-   * Sets a condition on the current subject node which may be a query, property or property-of element.
+   * Sets aa condition on the current subject node which may be a query, property or property-of element.
    * 
    * @param conditionType {string} - eq | neq | gt | gte | lt | lte | range | neg_range | contains | in | not_in | near
    * @param value {string} - the condition value.
    * @param valueDataType {string} - the XML schema datatype of the value.
    * @param valueLang {string} - the language of the value, expressed as a two-letter (ISO 639-1) language code.
    * 
+   * @see setSubjectValue
+   * 
    * @description
-   * The condition is specified using a &lt;cond&gt; element of the form:
+   * The condition is specified using a &lt;cond&gt; element of the form:<br>
+   * <pre>
    *   &lt;cond type="{conditionType}" neg="{negate}" xml:lang="{valueLang}" datatype="{valueDataType}"&gt;
    *     {value}
    *   &lt;/cond&gt;
+   * </pre>
    * After setting the condition, the subject node is reset to 1, the view type set to 'text-d' and
    * the view offset set to 0.
-   * 
-   * @see setSubjectValue
    */
   setSubjectCondition(conditionType, value, valueDataType, valueLang = "", negate = false) {
     // value, valueLang, valueDataType are obtained from query string 
@@ -1241,17 +1283,20 @@ export class FctQuery {
    * @param {string} [conditionType='eq'] - eq | neq | gt | gte | lt | lte | range | neg_range | contains | in | not_in | near
    * @param {string} [valueDataType=''] - the XML schema datatype of the value.
    * @param {string} [valueLang=''] - the language of the value, expressed as a two-letter (ISO 639-1) language code.
+   *
+   * @see setSubjectCondition
    * 
    * @description
    * The condition is specified using a &lt;value&gt; element of the form:
+   * <pre>
    *   &lt;value type="{conditionType}" neg="{negate}" xml:lang="{valueLang}" datatype="{valueDataType}"&gt;
    *     {value}
    *   &lt;/value&gt;
+   * </pre>
    *  {value} must be enclosed in quotes. (A /fct bug.)
    * 
    * After setting the condition, the subject node is reset to 1 and the view offset set to 0.
    * 
-   * @see setSubjectCondition
    */
   setSubjectValue(
     value,
