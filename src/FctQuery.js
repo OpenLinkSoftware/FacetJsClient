@@ -3,20 +3,53 @@ import { FctResult } from './FctResult.js';
 import { FctError } from './FctError.js';
 import JXON from "./JXON.js";
 
+// --------------------------------------------------------------------------
 // Fixed defaults
+
+/**
+ * The default view type (result set view) specified in a Facet query.
+ * @default "text-d"
+ */
 const  FCT_QRY_DFLT_VIEW_TYPE = "text-d";
 
+// --------------------------------------------------------------------------
 // Configurable defaults
+
+/**
+ * The default query timeout (milliseconds) for Facet searches.<br/>
+ * This default is configurable.
+ * @default 60000
+ */
+export let FCT_QRY_AJAX_TIMEOUT = 60000; // milliseconds
+
+/**
+ * The default limit on the number of rows returned by a Facet query.<br/>
+ * It provides a default value for the &lt;query&gt; element's <code>limit</code> attribute.<br/>
+ * This default is configurable.
+ * @default 50
+ */
+export let FCT_QRY_DFLT_VIEW_LIMIT = 50;
+
+/**
+ * The default Facet service endpoint for executing Facet queries.<br/>
+ * This default is configurable.
+ * @default "http://linkeddata.uriburner.com/fct/service"
+ */
+export let FCT_QRY_DFLT_SVC_ENDPOINT = 'http://linkeddata.uriburner.com/fct/service';
+// export let FCT_QRY_DFLT_SVC_ENDPOINT = 'http://localhost:8896/fct/service';
+
+/**
+ * The default Virtuoso /describe service endpoint for describing and viewing 
+ * entities in a Facet result set.<br/>
+ * This default is configurable.
+ * @default "http://linkeddata.uriburner.com/describe/"
+ */
+export let DESCRIBE_DFLT_SVC_ENDPOINT = 'http://linkeddata.uriburner.com/describe/';
+// export let DESCRIBE_DFLT_SVC_ENDPOINT = 'http://localhost:8896/describe/';
+
 // TO DO
 // - Ensure FCT_QRY_AJAX_TIMEOUT is greater than the 
 //   the timeout specified in the query body.
-export let FCT_QRY_AJAX_TIMEOUT = 60000; // milliseconds
-export let FCT_QRY_DFLT_VIEW_LIMIT = 50;
-// export let FCT_QRY_DFLT_SVC_ENDPOINT = 'http://localhost:8896/fct/service';
-export let FCT_QRY_DFLT_SVC_ENDPOINT = 'http://linkeddata.uriburner.com/fct/service';
-
-// export let DESCRIBE_DFLT_SVC_ENDPOINT = 'http://localhost:8896/describe/';
-export let DESCRIBE_DFLT_SVC_ENDPOINT = 'http://linkeddata.uriburner.com/describe/';
 
 // TO DO:
 // Look for default overrides set through a config.js file.
@@ -25,45 +58,55 @@ export let DESCRIBE_DFLT_SVC_ENDPOINT = 'http://linkeddata.uriburner.com/describ
 // FCT_QRY_DFLT_SVC_ENDPOINT = xxx
 // DESCRIBE_DFLT_SVC_ENDPOINT = xxx
 
-const ID_QUERY = "0";
-const ID_TEXT = "1";
-const ID_VIEW = "2";
-
 /**
  * Represents a Facet query.
  */
 export class FctQuery {
 
   /**
-   * Class constant
+   * Getter for the configurable default FCT_QRY_DFLT_VIEW_LIMIT.
    */ 
   static get FCT_QRY_DFLT_VIEW_LIMIT() {
     return FCT_QRY_DFLT_VIEW_LIMIT;
   }
 
   /**
-   * Class constant
+   * Getter for the default FCT_QRY_DFLT_VIEW_TYPE.
    */ 
   static get FCT_QRY_DFLT_VIEW_TYPE() {
     return FCT_QRY_DFLT_VIEW_TYPE;
   }
 
   /**
-   * Class constant
+   * Getter for the configurable default FCT_QRY_DFLT_SVC_ENDPOINT.
    */
   static get FCT_QRY_DFLT_SVC_ENDPOINT() {
     return FCT_QRY_DFLT_SVC_ENDPOINT;
   }
 
   /**
-   * Class constant
+   * Getter for the configurable default DESCRIBE_DFLT_SVC_ENDPOINT.<br/>
    */
   static get DESCRIBE_DFLT_SVC_ENDPOINT() {
     return DESCRIBE_DFLT_SVC_ENDPOINT;
   }
 
   /** 
-   * @param {string} [sourceXml]
+   * @summary
+   * Creates a Facet query represented by an XML tree.
+   * 
+   * @description
+   * The facets to query on and the desired result set view
+   * are described by an XML tree. If <code>sourceXml</code>
+   * is supplied, the FacetQuery object is initialized
+   * using this XML. If not supplied, a skeleton XML query
+   * description is created. It contains the root &lt;query&gt; element
+   * with just one child: a &lt;view&gt; element with attributes
+   * <code>type</code>, <code>limit</code> and <code>offset</code>
+   * initialized to <code>FCT_QRY_DFLT_VIEW_TYPE</code>, 
+   * <code>FCT_QRY_DFLT_VIEW_LIMIT</code> and 0 respectively.
+   * 
+   * @param {string} [sourceXml] - XML describing a Facet query to initialize the FctQuery instance with.
    */
   constructor(sourceXml = null) {
     if (!sourceXml)
@@ -75,7 +118,7 @@ export class FctQuery {
       $query.append('<view/>');
       $query.find('view')
         .attr('type', `${FCT_QRY_DFLT_VIEW_TYPE}`)
-        .attr('limit', `${FCT_QRY_DFLT_VIEW_LIMIT}`)
+        .attr('limit', `${ FCT_QRY_DFLT_VIEW_LIMIT}`)
         .attr('offset', '0');
     }
     else
@@ -91,6 +134,7 @@ export class FctQuery {
   }
 
   /** 
+   * @summary
    * Returns the XML which will form the HTTP request body of the Facet query to be executed.
    * 
    * @returns {string} The XML representing the Facet query described by this FctQuery instance. 
@@ -102,9 +146,10 @@ export class FctQuery {
   }
 
   /** 
+   * @summary
    * Returns the Facet service endpoint being used for Facet queries by this FctQuery instance.
    * 
-   * @returns {url} A Facet service endpoint URL
+   * @returns {string} A Facet service endpoint URL
    */
   getServiceEndpoint() {
     return this._fctSvcEndpoint;
@@ -120,55 +165,132 @@ export class FctQuery {
     this._fctSvcEndpoint = fctSvcUrl;
   }
 
-  /** */
+  /**
+   * @summary
+   * Gets the graph attribute of the &lt;query&gt; element.
+   * 
+   * @description
+   * The graph attribute is optional and may not be present.
+   * @returns {string} The URI of the graph, if any, the Facet search is restricted to.
+   * @see FctQuery#setQueryGraph
+   */
   getQueryGraph() {
     return this._root.find('query').attr('graph');
   }
 
-  /** */
+  /**
+   * @summary
+   * Sets the graph attribute of the &lt;query&gt; element.
+   * @description
+   * If the attribute is omitted, all graphs are searched.
+   * If the attribute is present, the search is restricted to the given graph URI.
+   * @param {string} [graphUri] - The URI of the graph to search.
+   * @see FctQuery#getQueryGraph
+   */
   setQueryGraph(graphUri) {
     // TO DO: Check graphUri is a URI
     this._root.find('query').attr('graph', graphUri);
   }
 
-  /** */
+  /**
+   * @summary
+   * Removes any constraint on the graphs searched by the Facet query.
+   * 
+   * @description 
+   * Deletes any <code>graph</code> attribute present on the &lt;query&gt; element.
+   */
   removeQueryGraph() {
     this._root.find('query').removeAttr('graph');
   }
 
-  /** */
+  /** 
+   * Returns any query timeout set.
+   * @returns {integer} 
+   */
   getQueryTimeout() {
     return this._root.find('query').attr('timeout');
   }
 
-  /** */
+  /** 
+   * @summary
+   * Sets a query timeout.
+   * 
+   * @description
+   * The query timeout is set by adding a <code>timeout</code> attribute 
+   * on the &lt;query&gt; element.
+   * 
+   * @param {integer} no_of_msec - The query timeout to be set (milliseconds).
+   */
   setQueryTimeout(no_of_msec) {
     // TO DO: Check no_of_msec is a positive integer
     this._root.find('query').attr('timeout', no_of_msec);
   }
 
-  /** */
+  /**
+   * @summary
+   * Removes any query timeout which may have been set. 
+   * 
+   * @description
+   * The timeout is removed by deleting any <code>timeout</code> attribute 
+   * of the &lt;query&gt; element.
+   */
   removeQueryTimeout() {
     this._root.find('query').removeAttr('timeout');
   }
 
-  /** */
+  /**
+   * Returns any inference context set for the query.
+   * @returns {string} An inference context name
+   * @see FctQuery#removeInferenceContext
+   * @see FctQuery#setInferenceContext
+   */
   getInferenceContext() {
     return this._root.find('query').attr('inference');
   }
 
-  /** */
+  /** 
+   * @summary
+   * Sets an inference context to be used by the query.
+   * 
+   * @description
+   * <code>rdfsRuleSetName</code> is the name of an inference context
+   * declared using Virtuoso's <code>rdfs_rule_set</code> SQL command.<br/>
+   * <code>setInferenceContext</code> sets attribute <code>inference</code>
+   * on the &lt;query&gt; element.
+   * 
+   * @param {string} rdfsRuleSetName - The name of the inference rule set
+   * 
+   * @see FctQuery#getInferenceContext
+   * @see FctQuery#removeInferenceContext
+   */
   setInferenceContext(rdfsRuleSetName) {
     // TO DO: Check rdfsRuleSetName is a non-empty string
     this._root.find('query').attr('inference', rdfsRuleSetName);
   }
 
-  /** */
+  /** 
+   * @summary
+   * Removes any inference context set for the query.
+   * 
+   * @description
+   * Deletes any attribute <code>inference</code> on the &lt;query&gt; element.
+   * 
+   * @see FctQuery#getInferenceContext 
+   * @see FctQuery#setInferenceContext
+   */
   removeInferenceContext() {
     this._root.find('query').removeAttr('inference');
   }
 
-  /** */
+  /** 
+   * Returns the current <code>same-as</code> setting for the query, 
+   * or null if not set. 
+   * 
+   * @returns {boolean|null}
+   * 
+   * @see FctQuery#removeSameAs
+   * @see FctQuery#setSameAs
+  */
   getSameAs() {
     let sameAs = this._root.find('query').attr('same-as');
     let fSameAs;
@@ -185,7 +307,19 @@ export class FctQuery {
     return fSameAs
   }
 
-  /** */
+  /** 
+   * @summary
+   * Enables/disables <code>owl:sameAs</code> link handling.
+   * 
+   * @description
+   * If enabled, <code>owl:sameAs</code> links will be considered in the query evaluation.<br/>
+   * Sets attribute <code>same-as(="yes"|"no"</code>) on the <code>query</code> element.
+   * 
+   * @param {boolean} boolFlag - Turn same-as handling on/off.
+   * 
+   * @see FctQuery#getSameAs
+   * @see FctQuery#removeSameAs
+   */
   setSameAs(boolFlag) {
     if (typeof boolFlag != 'boolean')
       throw new Error('arg boolFlag must be boolean');
@@ -193,7 +327,17 @@ export class FctQuery {
     this._root.find('query').attr('same-as', yesNo);
   }
 
-  /** */
+  /**
+   * @summary 
+   * Removes any <code>same-as</code> handling enabled for the query.
+   * 
+   * @description
+   * The same-as handling is removed by deleting any <code>same-as</code> 
+   * attribute of the <query> element.
+   * 
+   * @see FctQuery#getSameAs
+   * @see FctQuery#setSameAs
+   */
   removeSameAs() {
     this._root.find('query').removeAttr('same-as');
   }
@@ -238,7 +382,7 @@ export class FctQuery {
    * @description
    * Attribute <code>property</code> must contain a URL.
    * If the attribute is set, the text pattern searched for by Facet
-   * must occur as a value of this property. If not set, the search text can appear
+   * must occur as a value of this RDF property. If not set, the search text can appear
    * as the value of any property. 
    * @type {string} 
    */
@@ -246,6 +390,7 @@ export class FctQuery {
     return this._root.find('query text').attr('property');
   }
 
+  /** */
   set queryTextProperty(propertyIri) {
     // TO DO: Check propertyIri is an IRI
     this._root.find('query text').attr('property', propertyIri);
@@ -285,7 +430,7 @@ export class FctQuery {
    * Returns the current limit on the number of rows returned by a query.
    * A limit of 0 indicates no limit. 
    * @returns {number}
-   * @see setViewLimit
+   * @see FctQuery#setViewLimit
    */
   getViewLimit() {
     let limit = parseInt(this._root.find('view').attr('limit'));
@@ -298,7 +443,7 @@ export class FctQuery {
    * Sets a limit on the number of rows returned by a query.
    * A limit of 0 indicates no limit. 
    * @param {number} limit - The number of rows to restrict the query result to.
-   * @see getViewLimit
+   * @see FctQuery#getViewLimit
    */
   setViewLimit(limit) {
     if (typeof limit !== 'number' || !Number.isInteger(limit) || limit < 0)
@@ -312,7 +457,7 @@ export class FctQuery {
   /** 
    * Get the current view offset.
    * @returns {number}
-   * @see setViewOffset
+   * @see FctQuery#setViewOffset
    */
   getViewOffset() {
     return parseInt(this._root.find('view').attr('offset'));
@@ -321,16 +466,11 @@ export class FctQuery {
   /** 
    * Skips the given number of matches from the start of the query result.
    * @param {number} offset - The number of result set rows to skip.
-   * @see getViewOffset
+   * @see FctQuery#getViewOffset
    */
   setViewOffset(offset) {
     // TO DO: Check offset is positive int
     this._root.find('view').attr('offset', offset);
-  }
-
-  /** */
-  getViewType() {
-    return this._root.find('view').attr('type');
   }
 
   /**
@@ -458,7 +598,35 @@ export class FctQuery {
     $potentialParents[index - 1].append($view); // Moves (not clones) the view element
   }
 
-  /** */
+  /** 
+   * @summary
+   * Gets the current view type set for the query.
+   * 
+   * @returns {string}
+   * @see FctQuery#setViewType
+   */
+  getViewType() {
+    return this._root.find('view').attr('type');
+  }
+
+  /**
+   * @summary
+   * Sets the view type for the query.
+   * 
+   * @description
+   * The view type determines the set of fields and information returned by the Facet query.<br/>
+   * Permitted values for the view type are:<br/>
+   * <ul><li>
+   *     alphabet, describe, geo, list, list-count, months, properties, 
+   *     properties-in, classes, text, text-d, weeks, years
+   * </li></ul>
+   * <code>setViewType</code> sets the <code>type</code> attribute of the &lt;view&gt; element.
+   * Any existing <code>offset</code> and <code>limit</code> attributes stay unchanged.
+   * 
+   * @param {string} type - A string identifying the view type
+   * 
+   * @see FctQuery#getViewType
+   */
   setViewType(type) {
     // TO DO: Check the type belongs to the allowed set of values.
     // type ::= properties | properties-in | classes | text | text-d |
@@ -856,7 +1024,7 @@ export class FctQuery {
    * 
    * @description
    * <p>Each element of the returned array contains a filter condition descriptor.
-   * The filter conditions are deliberately held in separate array elements so 
+   * The filter conditions are held in separate array elements so 
    * that the UI can associate controls with each filter, to allow a user to 
    * manipulate each individually, e.g. a button to drop a particular filter.</p>
    * 
@@ -1036,7 +1204,7 @@ export class FctQuery {
    * @param valueDataType {string} - the XML schema datatype of the value.
    * @param valueLang {string} - the language of the value, expressed as a two-letter (ISO 639-1) language code.
    * 
-   * @see setSubjectValue
+   * @see FctQuery#setSubjectValue
    * 
    * @description
    * The condition is specified using a &lt;cond&gt; element of the form:<br>
@@ -1284,7 +1452,7 @@ export class FctQuery {
    * @param {string} [valueDataType=''] - the XML schema datatype of the value.
    * @param {string} [valueLang=''] - the language of the value, expressed as a two-letter (ISO 639-1) language code.
    *
-   * @see setSubjectCondition
+   * @see FctQuery#getSubjectCondition
    * 
    * @description
    * The condition is specified using a &lt;value&gt; element of the form:
