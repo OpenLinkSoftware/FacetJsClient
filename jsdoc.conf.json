@@ -10,6 +10,7 @@
   "plugins": ["./node_modules/jsdoc-export-default-interop/dist/index"],
   "templates": {
     "default": {
+      "layoutFile": "./jsdoc.opllayout.tmpl",
       "outputSourceFiles": false
     }
   }
