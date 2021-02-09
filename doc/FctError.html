@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Class: FctError</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+    <style>
+      nav > h2 {
+      /* display: none; */
+      font-size: 95%;
+      }
+    </style>
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Class: FctError</h1>
+
+    
+
+
+
+
+<section>
+
+<header>
+    
+        <h2><span class="attribs"><span class="type-signature"></span></span>FctError<span class="signature">(message, httpStatusText, httpStatusCode, responseText, responseXml<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h2>
+        
+            <div class="class-description">Represents a Facet error reported by the Facet service.</div>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+
+    
+    <h2>Constructor</h2>
+    
+
+    
+    <h4 class="name" id="FctError"><span class="type-signature"></span>new FctError<span class="signature">(message, httpStatusText, httpStatusCode, responseText, responseXml<span class="signature-attributes">opt</span>)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    responseText may contain XML. If so, this is contained as parsed XML in responseXml.
+responseXml is converted to a JS object contained in responseJson. responseJson represents
+a Facet server error, described by property 'error'.
+<ul>
+  <li>error - An object containing the following properties:
+    <ul>
+      <li>code - The Virtuoso error code.</li>
+      <li>message - A short server message.</li>
+      <li>diagnostics - Detailed information about the error source.</li>
+    </ul>
+  </li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>message</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">Error message.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>httpStatusText</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">The HTTP status text corresponding to the HTTP status code.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>httpStatusCode</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">The HTTP status code returned by the server.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>responseText</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">The response body as text.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>responseXml</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">string</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">The response body as XML (if available)</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="FctQuery.html#execute">FctQuery#execute</a></li>
+        </ul>
+    </dd>
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    </div>
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Classes</h3>
+
+        <dl>
+            <dt><a href="FctError.html">FctError</a></dt>
+            <dd></dd>
+        </dl>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="FctError.html">FctError</a></li><li><a href="FctQuery.html">FctQuery</a></li><li><a href="FctResult.html">FctResult</a></li><li><a href="JXON.html">JXON</a></li></ul><h3>Global</h3><ul><li><a href="global.html#DESCRIBE_DFLT_SVC_ENDPOINT">DESCRIBE_DFLT_SVC_ENDPOINT</a></li><li><a href="global.html#FCT_QRY_AJAX_TIMEOUT">FCT_QRY_AJAX_TIMEOUT</a></li><li><a href="global.html#FCT_QRY_DFLT_SVC_ENDPOINT">FCT_QRY_DFLT_SVC_ENDPOINT</a></li><li><a href="global.html#FCT_QRY_DFLT_VIEW_LIMIT">FCT_QRY_DFLT_VIEW_LIMIT</a></li><li><a href="global.html#FCT_QRY_DFLT_VIEW_TYPE">FCT_QRY_DFLT_VIEW_TYPE</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Tue Feb 09 2021 16:13:10 GMT+0000 (Greenwich Mean Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
