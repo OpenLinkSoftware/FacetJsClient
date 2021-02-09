@@ -30,7 +30,7 @@
     "build": "webpack --mode production",
     "test": "karma start --single-run --browsers ChromeHeadless karma.conf.js",
     "debug": "karma start --browsers ChromeHeadless karma.conf.js",
-    "doc": "npx jsdoc -c ./jsdoc.conf.json --verbose"
+    "doc": "npx jsdoc -c ./jsdoc.conf.json --verbose; cp -r ./img ./doc/img"
   },
   "browser": {
     "child_process": false
