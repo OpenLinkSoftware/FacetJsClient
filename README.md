@@ -46,3 +46,137 @@ $('button').on('click', function() {
     })
 ```
 
+## Sparql Query Generation
+
+Examples of Facet input XML and the corresponding generated SPARQL queries are shown below. Each nesting level in the input XML introduces a new SPARQL variable: `?s1`, `?s2` ... `?sN`, where N corresponds to the nesting level.
+
+`?s1` identifies the set of matching entities found by the faceted search. The other `?sN` (N > 1) express the faceted search filter criteria, but aren't the primary entities being searched for.
+
+### Example 1
+
+**Input XML**
+
+```
+<?xml version="1.0"?>
+<query xmlns="http://openlinksw.com/services/facets/1.0">
+  <!-- Nesting level 1: implied variable ?s1 -->
+  <class iri="http://xmlns.com/foaf/0.1/Person" />
+  <property iri="http://xmlns.com/foaf/0.1/knows">
+    <-- Nesting level 2: Implied variable ?s2 -->
+    <property iri="http://xmlns.com/foaf/0.1/name">
+       <-- Nesting level 3: Implied variable ?s3 -->
+      <value>"Kingsley Idehen"</value>
+    </property>
+  </property>
+  <view type="list" limit="100" />
+</query>
+```
+
+**Query meta graph**
+
+![meta-graph-1](img/meta-graph-1.png)
+
+**Generated SPARQL query**
+
+```
+select ?s1 as ?c1  where  
+{
+  ?s1 a <http://xmlns.com/foaf/0.1/Person> . 
+  ?s1 <http://xmlns.com/foaf/0.1/knows> ?s2 . 
+  ?s2 <http://xmlns.com/foaf/0.1/name> ?s3 . 
+  filter (?s3 = "Kingsley Idehen") . 
+} 
+group by (?s1) 
+order by desc (<LONG::IRI_RANK> (?s1))  
+limit 100
+```
+
+### Example 2
+
+**Input XML**
+
+```
+<?xml version="1.0"?>
+<query xmlns="http://openlinksw.com/services/facets/1.0">
+  <!-- Nesting level 1: implied variable ?s1 -->
+  <class iri="http://xmlns.com/foaf/0.1/Person" />
+  <property-of iri="http://xmlns.com/foaf/0.1/knows">	
+    <-- Nesting level 2: Implied variable ?s2 -->
+    <property iri="http://xmlns.com/foaf/0.1/name">	
+      <-- Nesting level 3: Implied variable ?s3 -->
+      <value>"Melvin Carvalho"</value>
+    </property>
+  </property-of>
+  <view type="list" limit="100" />
+</query>
+```
+
+**Query meta graph**
+
+![meta-graph-2](img/meta-graph-2.png)
+
+**Generated SPARQL query**
+
+```
+select ?s1 as ?c1
+where
+{
+  ?s1 a <http://xmlns.com/foaf/0.1/Person> . 
+  ?s2 <http://xmlns.com/foaf/0.1/knows> ?s1 . 
+  ?s2 <http://xmlns.com/foaf/0.1/name> ?s3 . 
+  filter (?s3 = "Melvin Carvalho") . 
+} 
+group by (?s1) 
+order by desc (<LONG::IRI_RANK> (?s1))  
+limit 100
+```
+
+### Example 3
+
+**Input XML**
+
+```
+<?xml version="1.0"?>
+<query xmlns="http://openlinksw.com/services/facets/1.0">
+  <!-- Nesting level 1: implied variable ?s1 -->
+  <class iri="http://schema.org/Business" />
+  <property iri="http://schema.org/makesOffer">
+    <!-- Nesting level 2: implied variable ?s2 -->
+    <property iri="http://schema.org/businessFunction">
+      <!-- Nesting level 3.1: implied variable ?s3 -->
+      <value datatype="uri">http://purl.org/goodrelations/v1#Dispose</value>
+    </property>
+    <property iri="http://schema.org/itemOffered">
+      <!-- Nesting level 3.2: implied variable ?s4 -->
+      <class iri="http://schema.org/Product" />
+      <property iri="http://schema.org/material">
+        <!-- Nesting level 4: implied variable ?s5 -->
+        <value>"asbestos"</value>
+      </property>
+    </property>
+  </property>
+  <view type="list" limit="100" />
+</query>
+```
+
+**Query meta graph**
+
+![meta-graph-3](img/meta-graph-3.png)
+
+**Generated SPARQL query**
+
+```
+select ?s1 as ?c1  where  {
+  ?s1 a <http://schema.org/Business> . 
+  ?s1 <http://schema.org/makesOffer> ?s2 . 
+  ?s2 <http://schema.org/businessFunction> ?s3 . 
+  filter (?s3 = <http://purl.org/goodrelations/v1#Dispose>) . 
+  ?s2 <http://schema.org/itemOffered> ?s4 .
+  ?s4 a <http://schema.org/Product> . 
+  ?s4 <http://schema.org/material> ?s5 . 
+  filter (?s5 = "asbestos") . 
+} 
+group by (?s1) 
+order by desc (<LONG::IRI_RANK> (?s1))  
+limit 100 
+```
