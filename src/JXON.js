@@ -9,9 +9,11 @@ const rIsNull = /^\s*$/;
 const rIsBool = /^(?:true|false)$/i;
 
 /**
- * JXON (lossless JavaScript XML Object Notation): 
- * Defines the representation of JavaScript Objects using XML.
- * Converts Javascript Objects to XML and vice-versa.
+ * JXON (lossless JavaScript XML Object Notation) 
+ * defines the representation of JavaScript Objects using XML.<br/>
+ * It converts Javascript Objects to XML and vice-versa.
+ * 
+ * @see {@link https://developer.mozilla.org/en-US/docs/Archive/JXON|Mozilla Developer Network: JXON}
  */
 export default class JXON {
 

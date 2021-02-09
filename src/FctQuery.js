@@ -156,6 +156,7 @@ export class FctQuery {
   }
 
   /** 
+   * @summary
    * Sets the Facet service endpoint to use for Facet queries by this FctQuery instance.
    * 
    * @param {string} fctSvcUrl - A Facet service endpoint URL
@@ -171,7 +172,9 @@ export class FctQuery {
    * 
    * @description
    * The graph attribute is optional and may not be present.
+   * 
    * @returns {string} The URI of the graph, if any, the Facet search is restricted to.
+   * 
    * @see FctQuery#setQueryGraph
    */
   getQueryGraph() {
@@ -181,10 +184,13 @@ export class FctQuery {
   /**
    * @summary
    * Sets the graph attribute of the &lt;query&gt; element.
+   * 
    * @description
-   * If the attribute is omitted, all graphs are searched.
+   * If the attribute is omitted, all graphs are searched.<br/>
    * If the attribute is present, the search is restricted to the given graph URI.
+   * 
    * @param {string} [graphUri] - The URI of the graph to search.
+   * 
    * @see FctQuery#getQueryGraph
    */
   setQueryGraph(graphUri) {
@@ -204,7 +210,10 @@ export class FctQuery {
   }
 
   /** 
+   * @summary
+   * 
    * Returns any query timeout set.
+   * 
    * @returns {integer} 
    */
   getQueryTimeout() {
@@ -239,8 +248,11 @@ export class FctQuery {
   }
 
   /**
+   * @summary
    * Returns any inference context set for the query.
+   * 
    * @returns {string} An inference context name
+   * 
    * @see FctQuery#removeInferenceContext
    * @see FctQuery#setInferenceContext
    */
@@ -283,6 +295,7 @@ export class FctQuery {
   }
 
   /** 
+   * @summary
    * Returns the current <code>same-as</code> setting for the query, 
    * or null if not set. 
    * 
@@ -352,9 +365,11 @@ export class FctQuery {
   /** 
    * @summary
    * Get/set the search text for Facet to query on.
+   * 
    * @description
    * This accessor property gets/sets the text pattern contained in the
    * <code>&lt;text&gt;</code> element of the Facet input XML.
+   * 
    * @type {string} 
    */
   get queryText() {
@@ -379,18 +394,22 @@ export class FctQuery {
   /**
    * @summary
    * Get/set the <code>property</code> attribute of the <code>&lt;text&gt;</code> element.
+   * 
    * @description
    * Attribute <code>property</code> must contain a URL.
    * If the attribute is set, the text pattern searched for by Facet
    * must occur as a value of this RDF property. If not set, the search text can appear
    * as the value of any property. 
+   * 
    * @type {string} 
    */
   get queryTextProperty() {
     return this._root.find('query text').attr('property');
   }
 
-  /** */
+  /**
+   * @ignore 
+   */
   set queryTextProperty(propertyIri) {
     // TO DO: Check propertyIri is an IRI
     this._root.find('query text').attr('property', propertyIri);
@@ -407,8 +426,10 @@ export class FctQuery {
     return this._root.find('query text').remove();
   }
 
-  /** 
+  /**
+   * @summary 
    * Removes a filter from the Facet XML.
+   * 
    * @param {integer} filterId - A 0-based ID identifying the filter.
    */
   removeQueryFilter(filterId) {
@@ -427,8 +448,12 @@ export class FctQuery {
   }
 
   /** 
+   * @summary
    * Returns the current limit on the number of rows returned by a query.
+   * 
+   * @description
    * A limit of 0 indicates no limit. 
+   * 
    * @returns {number}
    * @see FctQuery#setViewLimit
    */
@@ -440,8 +465,12 @@ export class FctQuery {
   }
 
   /** 
+   * @summary
    * Sets a limit on the number of rows returned by a query.
-   * A limit of 0 indicates no limit. 
+   * 
+   * @description
+   * A limit of 0 indicates no limit. The complete result set is returned.
+   * 
    * @param {number} limit - The number of rows to restrict the query result to.
    * @see FctQuery#getViewLimit
    */
@@ -455,7 +484,9 @@ export class FctQuery {
   }
 
   /** 
+   * @summary
    * Get the current view offset.
+   * 
    * @returns {number}
    * @see FctQuery#setViewOffset
    */
@@ -463,9 +494,12 @@ export class FctQuery {
     return parseInt(this._root.find('view').attr('offset'));
   }
 
-  /** 
+  /**
+   * @summary 
    * Skips the given number of matches from the start of the query result.
+   * 
    * @param {number} offset - The number of result set rows to skip.
+   * 
    * @see FctQuery#getViewOffset
    */
   setViewOffset(offset) {
@@ -581,9 +615,14 @@ export class FctQuery {
   }
 
   /**
+   * @summary
+   * Makes the &lt;view&gt; element a child of the implicit subject identified by the given index.
+   * 
+   * @description
    * Moves the &lt;view&gt; element in the Facet input XML to change the
-   * current focus in the Facet UI to the implicit subject node
-   * query variable which has the given index.
+   * current focus in the Facet UI to the implicit subject node query variable which has 
+   * the given index.
+   * 
    * @param {number} index - Index (1 based) of subject node to receive the focus.
    */
   setViewSubjectIndex(index) {
@@ -603,6 +642,7 @@ export class FctQuery {
    * Gets the current view type set for the query.
    * 
    * @returns {string}
+   * 
    * @see FctQuery#setViewType
    */
   getViewType() {
@@ -638,6 +678,7 @@ export class FctQuery {
   }
 
   /**
+   * @description
    * Executes the Facet query described by the FctQuery instance.
    * 
    * @returns {Promise} A FctResult instance containing the query result or a FctError.
@@ -1070,6 +1111,7 @@ export class FctQuery {
   }
 
   /**
+   * @summary
    * Adds a <code>&lt;property&gt;</code> element to the Facet input XML.
    * 
    * @param {string} propertyUri - The URI of the property. 
@@ -1087,6 +1129,7 @@ export class FctQuery {
   }
 
   /**
+   * @summary
    * Adds a <code>&lt;property-of&gt;</code> element to the Facet input XML.
    * 
    * @param {string} propertyUri - The URI of the property. 
@@ -1185,10 +1228,12 @@ export class FctQuery {
   }
 
   /**
+   * @summary
    * Returns any <code>&lt;property&gt;</code> elements which are the immediate children of 
    * a subject node.
    * 
    * @param {number} subjectIndex - The index of the subject node.
+   * 
    * @returns {jQueryObject} A jQuery object containing the child <code>&lt;property&gt;</code> elements.
    */
   getSubjectProperties(subjectIndex) {
@@ -1253,7 +1298,9 @@ export class FctQuery {
   }
 
   /**
+   * @summary
    * Removes all conditions on the current subject node.
+   * 
    * @param {number} index - Index (1 based) of subject node for which any attached conditions are to be removed.
    */
   removeSubjectConditions(index) {
@@ -1264,8 +1311,11 @@ export class FctQuery {
   }
 
   /**
+   * @summary
    * Gets any conditions set on the current subject node. 
+   * 
    * @param {number} index - Index (1 based) of subject node for which any attached conditions are to be returned.
+   * 
    * @returns {jQueryObject}
    */
   getSubjectConditionElements(index) {
@@ -1277,7 +1327,9 @@ export class FctQuery {
   }
 
   /**
+   * @summary
    * Returns the query, property or property-of element which has the current focus.
+   * 
    * @returns {jQueryObject}
    */
   getSubjectElement() {
@@ -1285,7 +1337,10 @@ export class FctQuery {
   }
 
   /** 
+   * @summary
    * Adds a class filter as a child of the current subject node.
+   * 
+   * @description
    * Any existing class filter is overwritten.
    * 
    * @param {string} classIri - The IRI of the class.
@@ -1445,6 +1500,7 @@ export class FctQuery {
   }
   
   /**
+   * @summary
    * Sets a condition on the current subject node which may be a query, property or property-of element.
    * 
    * @param {string} value - the condition value.
@@ -1464,7 +1520,6 @@ export class FctQuery {
    *  {value} must be enclosed in quotes. (A /fct bug.)
    * 
    * After setting the condition, the subject node is reset to 1 and the view offset set to 0.
-   * 
    */
   setSubjectValue(
     value,
