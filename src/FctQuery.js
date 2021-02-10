@@ -135,9 +135,15 @@ export class FctQuery {
 
   /** 
    * @summary
-   * Returns the XML which will form the HTTP request body of the Facet query to be executed.
+   * Returnes the XML representing the Facet query described by this FctQuery instance. 
    * 
-   * @returns {string} The XML representing the Facet query described by this FctQuery instance. 
+   * @description
+   * The returned XML forms the HTTP request body of the Facet query to be executed.<br/>
+   * <code>toXml</code> is used by <code>FctQuery#execute</code> and may be useful when testing.
+   * 
+   * @returns {string} 
+   * 
+   * @see FctQuery#execute
    */
   toXml() {
     let xml = '<?xml version="1.0"?>';
@@ -150,6 +156,8 @@ export class FctQuery {
    * Returns the Facet service endpoint being used for Facet queries by this FctQuery instance.
    * 
    * @returns {string} A Facet service endpoint URL
+   * 
+   * @see FctQuery#setServiceEndpoint
    */
   getServiceEndpoint() {
     return this._fctSvcEndpoint;
@@ -160,6 +168,8 @@ export class FctQuery {
    * Sets the Facet service endpoint to use for Facet queries by this FctQuery instance.
    * 
    * @param {string} fctSvcUrl - A Facet service endpoint URL
+   * 
+   * @see FctQuery#getServiceEndpoint
    */
   setServiceEndpoint(fctSvcUrl) {
     // TO DO: Check fctSvcUrl is a URL
@@ -175,6 +185,7 @@ export class FctQuery {
    * 
    * @returns {string} The URI of the graph, if any, the Facet search is restricted to.
    * 
+   * @see FctQuery#removeQueryGraph
    * @see FctQuery#setQueryGraph
    */
   getQueryGraph() {
@@ -192,6 +203,7 @@ export class FctQuery {
    * @param {string} [graphUri] - The URI of the graph to search.
    * 
    * @see FctQuery#getQueryGraph
+   * @see FctQuery#removeQueryGraph
    */
   setQueryGraph(graphUri) {
     // TO DO: Check graphUri is a URI
@@ -204,6 +216,9 @@ export class FctQuery {
    * 
    * @description 
    * Deletes any <code>graph</code> attribute present on the &lt;query&gt; element.
+   * 
+   * @see FctQuery#getQueryGraph
+   * @see FctQuery#setQueryGraph
    */
   removeQueryGraph() {
     this._root.find('query').removeAttr('graph');
@@ -214,7 +229,10 @@ export class FctQuery {
    * 
    * Returns any query timeout set.
    * 
-   * @returns {integer} 
+   * @returns {integer} timeout (milliseconds)
+   * 
+   * @see FctQuery#removeQueryTimeout
+   * @see FctQuery#setQueryTimeout
    */
   getQueryTimeout() {
     return this._root.find('query').attr('timeout');
@@ -229,6 +247,9 @@ export class FctQuery {
    * on the &lt;query&gt; element.
    * 
    * @param {integer} no_of_msec - The query timeout to be set (milliseconds).
+   * 
+   * @see FctQuery#getQueryTimeout
+   * @see FctQuery#removeQueryTimeout
    */
   setQueryTimeout(no_of_msec) {
     // TO DO: Check no_of_msec is a positive integer
@@ -242,6 +263,9 @@ export class FctQuery {
    * @description
    * The timeout is removed by deleting any <code>timeout</code> attribute 
    * of the &lt;query&gt; element.
+   *
+   * @see FctQuery#getQueryTimeout
+   * @see FctQuery#setQueryTimeout
    */
   removeQueryTimeout() {
     this._root.find('query').removeAttr('timeout');
@@ -296,7 +320,7 @@ export class FctQuery {
 
   /** 
    * @summary
-   * Returns the current <code>same-as</code> setting for the query, 
+   * Returns the current <code>same-as</code> attribute setting for the query, 
    * or null if not set. 
    * 
    * @returns {boolean|null}
@@ -355,10 +379,21 @@ export class FctQuery {
     this._root.find('query').removeAttr('same-as');
   }
 
-  /** */
+  /**
+   * @summary 
+   * Returns the root &lt;query&gt; element of the current Facet XML.
+   *
+   * @description
+   * Allows a client to do their own jQuery-based handling of the complete Facet query XML.<br/>
+   * The returned jQuery object may also be useful when testing.
+   * 
+   * @returns {jQueryObject}
+   * 
+   * @see FctQuery#getSubjectElement
+   * @see FctQuery#getSubjectParentElement
+   * @see FctQuery#getSubjectConditionElements
+   */
   getQueryElement() {
-    // Allows a client to do their own querying of the Facet query XML.
-    // Also used for testing.
     return this._root.find('query');
   }
 
@@ -455,6 +490,7 @@ export class FctQuery {
    * A limit of 0 indicates no limit. 
    * 
    * @returns {number}
+   * 
    * @see FctQuery#setViewLimit
    */
   getViewLimit() {
@@ -472,6 +508,7 @@ export class FctQuery {
    * A limit of 0 indicates no limit. The complete result set is returned.
    * 
    * @param {number} limit - The number of rows to restrict the query result to.
+   * 
    * @see FctQuery#getViewLimit
    */
   setViewLimit(limit) {
@@ -488,6 +525,7 @@ export class FctQuery {
    * Get the current view offset.
    * 
    * @returns {number}
+   * 
    * @see FctQuery#setViewOffset
    */
   getViewOffset() {
@@ -576,29 +614,31 @@ export class FctQuery {
    * @returns {number}
    * 
    * @description
-   * An index n is returned where n is the effective subject node sn of the current view.<br>
-   * e.g. n = 1, 2 ... n identifies subject nodes s1, s2 ... sn
+   * An index n is returned where n is the effective subject node s<sub>n</sub> of the current view.<br>
+   * e.g. n = 1, 2 ... n identifies subject nodes s<sub>1</sub>, s<sub>2</sub> ... s<sub>n</sub>
    * 
    * <p>A &lt;query&gt;, &lt;property&gt; or &lt;property-of&gt; element equates to a subject-arc
    * pair:<br>
-   * <code>sn --(query)-->, sn --(property)--> or sn --(property-of)--></code><br>
+   * <code>s<sub>n</sub> --(query)-->, s<sub>n</sub> --(property)--> or s<sub>n</sub> --(property-of)--></code><br>
    * in the 'metagraph' described by the Facet input XML.</p>
    * 
    * <p>The single &lt;view&gt; element allowed in the input XML can be a child of
    * &lt;query&gt;, &lt;property&gt; or &lt;property-of&gt;. The position of the &lt;view&gt; element
-   * implicitly identifies the sn should have the current focus in the Facet UI
-   * when adding or removing filters. The sn appear in the SPARQL corresponding
+   * implicitly identifies the s<sub>n</sub> that should have the current focus in the Facet UI
+   * when adding or removing filters. The s<sub>n</sub> appear in the SPARQL corresponding
    * to the input XML as subject node variables, ?s1, ?s2 etc.</p>
    * 
-   * <p>The position of the &lt;view&gt; element also specifies which sn is presented in 
+   * <p>The position of the &lt;view&gt; element also specifies which s<sub>n</sub> is presented in 
    * the result set by adjusting the select list of the query described by the XML. 
-   * The result set can serve as a pick list for setting filters on sn to further 
-   * refine the search for the set of entities identified by s1.</p>
+   * The result set can serve as a pick list for setting filters on s<sub>n</sub> to further 
+   * refine the search for the set of entities identified by s<sub>1</sub>.</p>
    * 
    * <p>Each &lt;query&gt;, &lt;property&gt; or &lt;property-of&gt; element implicitly introduces
-   * a new sn. We can identifiy the sn (or rather n) which the &lt;view&gt; element 
+   * a new s<sub>n</sub>. We can identifiy the s<sub>n</sub> (or rather n) which the &lt;view&gt; element 
    * identifies as having the current focus by counting the occurrences of 
-   * these elements until we reach one of them which has &lt;view&gt; as a child.</p>
+   * these elements until we reach the one which has &lt;view&gt; as a child.</p>
+   * 
+   * @see FctQuery#setViewSubjectIndex
    */
   getViewSubjectIndex() {
     // Equivalent to /fct PL routine fct_view_pos() // TO DO: Remove
@@ -619,11 +659,13 @@ export class FctQuery {
    * Makes the &lt;view&gt; element a child of the implicit subject identified by the given index.
    * 
    * @description
-   * Moves the &lt;view&gt; element in the Facet input XML to change the
-   * current focus in the Facet UI to the implicit subject node query variable which has 
-   * the given index.
+   * Moves the &lt;view&gt; element in the Facet input XML, in effect changing the
+   * subject node described by numerous Facet responses. It also implies a change of focus in 
+   * the Facet UI to the implicit subject node query variable which has the given index.
    * 
    * @param {number} index - Index (1 based) of subject node to receive the focus.
+   * 
+   * @see FctQuery#getViewSubjectIndex
    */
   setViewSubjectIndex(index) {
     let $view = this._root.find('view');
@@ -1103,11 +1145,18 @@ export class FctQuery {
   }
 
   /**
+   * @summary
+   * Returns a short text description of the current view type set for the query.
    * 
+   * @description
+   * The short description is intended for use in a UI to assist a user.
+   * 
+   * @returns {string}
    */
-  viewDescription() {
+  getViewDescription() {
     // Equivalent to /fct PL routine fct_view_info() // TO DO: Remove
     // TO DO
+    throw new Error('Not implemented');
   }
 
   /**
@@ -1116,8 +1165,8 @@ export class FctQuery {
    * 
    * @param {string} propertyUri - The URI of the property. 
    * @param {number} subjectIndex - The index of the implicit subject that the property will belong to.
-   * @param {boolean} exclude - If true, sets attribute exclude="yes". If false, omits the attribute.
-   * @param {boolean} sameAs - If true, sets attribute same_as="yes". If false, omits the attribute.
+   * @param {boolean} exclude - If true, sets attribute <code>exclude="yes"</code>. If false, omits the attribute.
+   * @param {boolean} sameAs - If true, sets <code>attribute same_as="yes"</code>. If false, omits the attribute.
    * @param {string} inferenceContext - The name of the inference context to use. 
    *     If present, sets attribute <code>inference="{inferenceContext}"</code>.
    * 
@@ -1134,10 +1183,10 @@ export class FctQuery {
    * 
    * @param {string} propertyUri - The URI of the property. 
    * @param {number} subjectIndex - The index of the implicit subject that the property will belong to.
-   * @param {boolean} exclude - If true, sets attribute exclude="yes". If false, omits the attribute.
-   * @param {boolean} sameAs - If true, sets attribute same_as="yes". If false, omits the attribute.
+   * @param {boolean} exclude - If true, sets attribute <code>exclude="yes"</code>. If false, omits the attribute.
+   * @param {boolean} sameAs - If true, sets attribute <code>same_as="yes"</code>. If false, omits the attribute.
    * @param {string} inferenceContext - The name of the inference context to use. 
-   *     If present, sets attribute inference="{inferenceContext}".
+   *     If present, sets attribute <code>inference="{inferenceContext}"</code>.
    * 
    * @returns {number} The subject index of the scope enclosed by the new <code>&lt;property-of&gt;</code> element
    */
@@ -1190,6 +1239,10 @@ export class FctQuery {
    * 
    * @description
    * Returns the element which provides the context for a given subject node.
+   * 
+   * @see FctQuery#getSubjectElement
+   * @see FctQuery#getSubjectConditionElements
+   * @see FctQuery#getQueryElement
    */
   getSubjectParentElement(subjectIndex) {
     // console.log('FctQuery#getSubjectParentElement: in: subjectIndex:', subjectIndex);
@@ -1237,12 +1290,13 @@ export class FctQuery {
    * @returns {jQueryObject} A jQuery object containing the child <code>&lt;property&gt;</code> elements.
    */
   getSubjectProperties(subjectIndex) {
+    // TO DO
     throw new Error('Not implemented');
   }
 
   /**
    * @summary
-   * Sets aa condition on the current subject node which may be a query, property or property-of element.
+   * Sets a condition on the current subject node which may be a query, property or property-of element.
    * 
    * @param conditionType {string} - eq | neq | gt | gte | lt | lte | range | neg_range | contains | in | not_in | near
    * @param value {string} - the condition value.
@@ -1315,8 +1369,12 @@ export class FctQuery {
    * Gets any conditions set on the current subject node. 
    * 
    * @param {number} index - Index (1 based) of subject node for which any attached conditions are to be returned.
-   * 
+   *
    * @returns {jQueryObject}
+   * 
+   * @see FctQuery#getSubjectParentElement
+   * @see FctQuery#getSubjectElement
+   * @see FctQuery#getQueryElement
    */
   getSubjectConditionElements(index) {
     let currentSubjectIndex = this.getViewSubjectIndex();
@@ -1331,6 +1389,10 @@ export class FctQuery {
    * Returns the query, property or property-of element which has the current focus.
    * 
    * @returns {jQueryObject}
+   * 
+   * @see FctQuery#getSubjectParentElement
+   * @see FctQuery#getSubjectConditionElements
+   * @see FctQuery#getQueryElement
    */
   getSubjectElement() {
     return this._root.find('view').parent();
@@ -1345,6 +1407,9 @@ export class FctQuery {
    * 
    * @param {string} classIri - The IRI of the class.
    * @param {string} [inferenceContext] - The name of the inference context to use.
+   * 
+   * @see FctQuery#getSubjectClass
+   * @see FctQuery#removeSubjectClass
    */
   setSubjectClass(classIri, inferenceContext = null) {
     let $subject = this.getSubjectElement();
@@ -1359,27 +1424,38 @@ export class FctQuery {
   }
 
   /** 
-   * Returns a description of any class filter attached to the current subject node. 
+   * @summary
+   * Returns a description of any class filter attached to the current subject node.
+   *  
+   * @see FctQuery#removeSubjectClass
+   * @see FctQuery#setSubjectClass
    */
   getSubjectClass() {
     // TO DO
+    throw new Error('Not implemented');
   }
 
   /**
+   * @summary
    * Removes any class filter attached to the current subject node.
+   * 
+   * @see FctQuery#getSubjectClass
+   * @see FctQuery#setSubjectClass
    */
   removeSubjectClass() {
     // TO DO
+    throw new Error('Not implemented');
   }
 
   /**
    * Adds a property filter as a child of the current subject node.
    */
   setSubjectProperty() {
-    // TO DO?
+    // TO DO
     // Redundant? See also addProperty().
     // Rename addProperty to setSubjectProperty()?
     // set/get/removeSubjectProperty provides a more consistent naming scheme than addProperty.
+    throw new Error('Not implemented');
   }
 
   /** 
@@ -1387,6 +1463,7 @@ export class FctQuery {
    */
   getSubjectProperty() {
     // TO DO
+    throw new Error('Not implemented');
   }
 
   /**
@@ -1394,17 +1471,18 @@ export class FctQuery {
    */
   removeSubjectProperty() {
     // TO DO
+    throw new Error('Not implemented');
   }
 
   /** 
    * Adds a property-of filter as a child of the current subject node.
    */
   setSubjectPropertyOf() {
-    // TO DO?
+    // TO DO
     // Redundant? See also addPropertyOf().
     // Rename addPropertyOf to setSubjectPropertyOf()?
     // set/get/removeSubjectPropertyOf provides a more consistent naming scheme than addPropertyOf.
-
+    throw new Error('Not implemented');
   }
 
   /**
@@ -1412,6 +1490,7 @@ export class FctQuery {
    */
   getSubjectPropertyOf() {
     // TO DO
+    throw new Error('Not implemented');
   }
 
   /**
@@ -1419,6 +1498,7 @@ export class FctQuery {
    */
   removeSubjectPropertyOf() {
     // TO DO
+    throw new Error('Not implemented');
   }
 
   // -- Private methods -----------------------------------------------------

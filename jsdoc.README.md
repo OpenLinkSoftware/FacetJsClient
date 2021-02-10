@@ -169,7 +169,23 @@ order by desc (<LONG::IRI_RANK> (?s1))
 limit 100 
 ```
 
-## DTD for Facet Service Input XML
+## DTD for the Facet Service Input XML
 ```<!ELEMENT query (text?,class*,property*,property-of*,value?,view?,cond?)><!ELEMENT text (#PCDATA)><!ELEMENT class EMPTY><!ELEMENT property (class*|property*|property-of*|value?|view?)><!ELEMENT property-of (class*|property*|property-of*|value?|view?)><!ELEMENT value (#PCDATA)><!-- When element <value> occurs as a child of property-of, it must be datatype 'uri' (xsd:anyURI). The subject of the property to which 'property-of' refers must be an entity (a resource), not a literal; so the value's type must be 'uri'. This element has the 
 effect of constraining the entity's URI to the specified value.--><!ELEMENT view EMPTY><!-- Element <view> may occur as a child of a <query>, <property> or <property-of> element but may occur only once in the document.<view> specifies which subject is presented in the result set.--><!ATTLIST query  graph CDATA #IMPLIED  timeout CDATA #IMPLIED  inference CDATA #IMPLIED  same-as CDATA #IMPLIED><!ATTLIST view  type (classes|geo|geo-list|list|list-count|        properties|properties-in|propval-list|text|text-d|text-properties) #REQUIRED  limit CDATA #IMPLIED  offset CDATA #IMPLIED><!ATTLIST text  property CDATA #IMPLIED><!ATTLIST text-d  property CDATA #IMPLIED><!ATTLIST class  iri CDATA #IMPLIED  exclude yes #IMPLIED  inference CDATA #IMPLIED><!ATTLIST property  iri CDATA #REQUIRED  same_as yes #IMPLIED  inference CDATA #IMPLIED><!ATTLIST property-of  iri CDATA #REQUIRED  same_as yes #IMPLIED  inference CDATA #IMPLIED><!-- -- value and cond perform similar functions. --><!ATTLIST value  datatype CDATA #IMPLIED  xml:lang CDATA #IMPLIED  op (=|<|>|<=|>=) "="><!ATTLIST cond  datatype CDATA #IMPLIED  xml:lang CDATA #IMPLIED  op (=|<|>|<=|>=) "="  neg 1 #IMPLIED>
 ```
+
+## Facet Input XML Notes
+
+### View Element
+
+As already mentioned, each nesting level in the input XML introduces a new SPARQL variable: `?s1`, `?s2` ... `?sN`, where N corresponds to the nesting level. A `<query>`, `<property>` or `<property-of>` element equates to a subject-arc pair:
+
+<code>s<sub>N</sub></code> -- (query) -->    
+<code>s<sub>N</sub></code> -- (property) -->   
+<code>s<sub>N</sub></code> -- (property-of) -->  
+
+in the 'metagraph' described by the Facet input XML.
+
+The single `<view>` element allowed in the input XML can be a child of `<query>`, `<property>` or `<property-of>`. The position of the `<view>` element implicitly specifies which <code>s<sub>N</sub></code> is presented in the result set by causing the Facet server to adjust the select list of the query described by the XML. The result set can then serve as a 'pick list' for setting filters on <code>s<sub>N</sub></code> to further refine the search for the set of entities identified by <code>s<sub>1</sub></code>. The result set, when seen as a 'pick list', comprises sets of property values from which a user can choose to constrain a property to a particular value or range, to narrow a search. The position of the `<view>` element then also identifies the <code>s<sub>N</sub></code> that should have the current focus in the Facet UI when adding or removing filters, i.e. which subject node any filters added will be applied to.
+
+
