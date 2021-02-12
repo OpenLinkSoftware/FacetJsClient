@@ -243,13 +243,15 @@ A short description of the effect of some elements is given. For a detailed desc
 
 `<text>` specifies the text which matching entities must contain.
 
-[queryText (get/set)](./FctQuery.html#queryText)  
-[removeQueryText](./FctQuery.html#removeQueryText)
+[getQueryText](./FctQuery.html#queryText)    
+[removeQueryText](./FctQuery.html#removeQueryText)  
+[setQueryText](./FctQuery.html#setQueryText)  
 
 ###### Text Element Attributes
-
-[queryTextProperty (get/set)](./FctQuery.html#queryTextProperty)   
-[removeQueryTextProperty](./FctQuery.html#removeQueryTextProperty)
+  
+[getQueryTextProperty](./FctQuery.html#getQueryTextProperty)  
+[removeQueryTextProperty](./FctQuery.html#removeQueryTextProperty)  
+[setQueryTextProperty](./FctQuery.html#setQueryTextProperty)  
 
 ##### View Element
 
