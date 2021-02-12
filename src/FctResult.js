@@ -22,6 +22,7 @@ export class FctResult {
   }
 
   /**
+   * @summary
    * The SPARQL query used to generate the resultset.
    */
   get sparql() {
@@ -29,6 +30,7 @@ export class FctResult {
   }
 
   /**
+   * @summary
    * The JSON representation of the Facet query result.
    */
   get json() {
@@ -36,6 +38,7 @@ export class FctResult {
   }
 
   /**
+   * @summary
    * The XML representation of the Facet query result.
    */
   get xml() {

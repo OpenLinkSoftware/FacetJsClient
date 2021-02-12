@@ -466,6 +466,12 @@ export class FctQuery {
    * Removes a filter from the Facet XML.
    * 
    * @param {integer} filterId - A 0-based ID identifying the filter.
+   * 
+   * @description
+   * If the removed node contained the &lt;view&gt; element, 
+   * a new &lt;view&gt; element is created at the top level,
+   * as a child of &lt;query&gt;, because &lt;view&gt; must always exist.
+   * The limit attribute of the reinstated &lt;view&gt; remains unchanged.
    */
   removeQueryFilter(filterId) {
     let rFilterDesc = this.queryFilterDescriptors();
@@ -474,8 +480,6 @@ export class FctQuery {
     const limit = this.getViewLimit();
     let $nodeToRemove = rFilterDesc[filterId].$node;
     $nodeToRemove.remove();
-    // If the removed node contained the view element, a new view element
-    // must be created at the top level because this element must always exist.
     if (this._root.find('view').length === 0) {
       let $replacementView = $(`<view type="${FctQuery.FCT_QRY_DFLT_VIEW_TYPE}" limit="${limit}" offset="0"/>`);
       this._root.find('query').append($replacementView);
@@ -778,7 +782,7 @@ export class FctQuery {
   }
 
   /**
-   * 
+   * @private
    */
   queryDescription_describeChildNodes(opt) {
     // Equivalent of /fct PL routine fct_query_info_1.
@@ -795,6 +799,7 @@ export class FctQuery {
   }
 
   /**
+   * @private
    * Returns a SPARQL-like description of a particular node in the Facet XML.
    * @returns {string}
    */
@@ -1588,8 +1593,6 @@ export class FctQuery {
    * @param {string} [valueDataType=''] - the XML schema datatype of the value.
    * @param {string} [valueLang=''] - the language of the value, expressed as a two-letter (ISO 639-1) language code.
    *
-   * @see FctQuery#getSubjectCondition
-   * 
    * @description
    * The condition is specified using a &lt;value&gt; element of the form:
    * <pre>
