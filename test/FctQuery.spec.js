@@ -29,27 +29,27 @@ describe('FctQuery', () => {
     it('should set the query text', () => {
       const fctQuery = new FctQuery();
       const qryTxt = 'Linked Data';
-      fctQuery.queryText = qryTxt;
-      expect(fctQuery.queryText).to.equal(qryTxt);
+      fctQuery.setQueryText(qryTxt);
+      expect(fctQuery.getQueryText()).to.equal(qryTxt);
     });
   });
 
   describe('#queryText()', () => {
     it('should return the set query text', () => {
       const fctQuery = new FctQuery();
-      fctQuery.queryText = 'linked data';
-      expect(fctQuery.queryText).to.equal('linked data');
+      fctQuery.setQueryText('linked data');
+      expect(fctQuery.getQueryText()).to.equal('linked data');
     });
     it('should return an empty string if element <text> is removed', () => {
       const fctQuery = new FctQuery();
-      fctQuery.queryText = 'linked data';
-      expect(fctQuery.queryText).to.equal('linked data');
+      fctQuery.setQueryText('linked data');
+      expect(fctQuery.getQueryText()).to.equal('linked data');
       fctQuery.removeQueryText();
-      expect(fctQuery.queryText).to.equal('');
+      expect(fctQuery.getQueryText()).to.equal('');
     });
     it('should return an empty string if element <text> is not present', () => {
       const fctQuery = new FctQuery();
-      expect(fctQuery.queryText).to.equal('');
+      expect(fctQuery.getQueryText()).to.equal('');
     });
   });
 
@@ -100,7 +100,8 @@ describe('FctQuery', () => {
     });
   });
 
-  describe.only('#execute', () => {
+  // describe.only('#execute', () => {
+  describe('#execute', () => {
     it.skip('should return a FctResult instance on success', async () => {
       const fctQuery = new FctQuery();
       console.log(fct_test_env);

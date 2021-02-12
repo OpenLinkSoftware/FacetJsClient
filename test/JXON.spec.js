@@ -58,16 +58,16 @@ describe('JXON', () => {
       let xmlDoc = domParser.parseFromString(viewLvl3bRequest, "application/xml");
       let jxon = new JXON();
       let jsObj = jxon.build(xmlDoc);
-      console.log('jsObj: ', JSON.stringify(jsObj, null, 2));
+      // console.log('jsObj: ', JSON.stringify(jsObj, null, 2));
+      expect(jsObj.query.property.property[1].property["@iri"]).to.equal("http://schema.org/material");
+
       let xmlFromJson = jxon.unbuild(jsObj);
-      console.log('xmlFromJson: ', xmlFromJson);
-      expect(false).to.be.true;
-      // expect(jsObj.facets.result.row instanceof Array).to.be.true;
-      // expect(jsObj.facets.result.row.length).to.be.above(0);
+      let re = new RegExp('<query.+><class.+><property iri="http://schema.org/makesOffer">');
+      let strXml = new XMLSerializer().serializeToString(xmlFromJson);
+      expect(re.test(strXml)).to.be.true;
     })
   })
 })
-
 
 describe('JXON', () => {
   describe('#build', () => {
