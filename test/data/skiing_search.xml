@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<query xmlns="http://openlinksw.com/services/facets/1.0">
+<view type="text" limit="50" offset=""></view>
+<text>skiing</text>
+</query>
