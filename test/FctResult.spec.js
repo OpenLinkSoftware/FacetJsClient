@@ -24,8 +24,8 @@ describe('FctResult', () => {
     it('should convert the input XML query result to a JS object.', () => {
       expect(qryResult instanceof FctResult).to.be.true;
       // console.log('qryResult.json: ', JSON.stringify(qryResult.json, null, 2));
-      expect(qryResult.json.facets.result.row instanceof Array).to.be.true;
-      expect(qryResult.json.facets.result.row.length).to.be.above(0);
+      expect(qryResult.json.facets.result.row.column instanceof Array).to.be.true;
+      expect(qryResult.json.facets.result.row.column.length).to.be.above(0);
     });
   });
 

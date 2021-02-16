@@ -11,15 +11,15 @@ import JXON from "./JXON.js";
  * @default 60000
  * @see FctQuery#getDefaultQueryTimeout
  */
-const DFLT_QUERY_TIMEOUT = 60000; // milliseconds
+export const DFLT_QUERY_TIMEOUT = 60000; // milliseconds
 
 /**
  * The default Facet service endpoint for executing Facet queries.<br/>
  * @default "http://linkeddata.uriburner.com/fct/service"
  * @see FctQuery#getDefaultServiceEndpoint
  */
-// const DFLT_SERVICE_ENDPOINT = 'http://linkeddata.uriburner.com/fct/service';
-const DFLT_SERVICE_ENDPOINT = 'http://localhost:8896/fct/service';
+// export const DFLT_SERVICE_ENDPOINT = 'http://linkeddata.uriburner.com/fct/service';
+export const DFLT_SERVICE_ENDPOINT = 'http://localhost:8896/fct/service';
 
 /**
  * The default limit on the number of rows returned by a Facet query.<br/>
@@ -27,14 +27,14 @@ const DFLT_SERVICE_ENDPOINT = 'http://localhost:8896/fct/service';
  * @default 50
  * @see FctQuery#getDefaultViewLimit
  */
-const DFLT_VIEW_LIMIT = 50;
+export const DFLT_VIEW_LIMIT = 50;
 
 /**
  * The default view type (result set view) specified in a Facet query.
  * @default "text-d"
  * @see FctQuery#getDefaultViewType
  */
-const DFLT_VIEW_TYPE = "text-d";
+export const DFLT_VIEW_TYPE = "text-d";
 
 /**
  * Represents a Facet query.
@@ -771,7 +771,7 @@ export class FctQuery {
     })
     */
     let qryTimeout = this.getQueryTimeout() || this.getDefaultQueryTimeout();
-    console.log('FctQuery#execute: input XML: ', this.toXml());
+    // console.log('FctQuery#execute: input XML: ', this.toXml());
     return new Promise((resolve, reject) => {
       $.ajax({
         url: this._fctServiceEndpoint,

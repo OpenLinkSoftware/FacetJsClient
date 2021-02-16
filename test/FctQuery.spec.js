@@ -1,7 +1,10 @@
-import { FctQuery } from '../src/FctQuery.js';
+import { 
+    FctQuery, 
+    DFLT_QUERY_TIMEOUT, DFLT_SERVICE_ENDPOINT, DFLT_VIEW_LIMIT, DFLT_VIEW_TYPE 
+  } from '../src/FctQuery.js';
 import { FctResult } from '../src/FctResult.js';
 import { FctError } from '../src/FctError.js';
-import { fct_test_env }  from './test.conf.js';
+import { fct_test_env } from './test.conf.js';
 import $ from "../src/jquery.module.js";
 
 import fixtureFctQry1 from './fixtures/fct_qry_1_viewtype_classes-request.js';
@@ -17,15 +20,15 @@ describe('FctQuery', () => {
       let fctQuery = new FctQuery();
       let queryXml = fctQuery.toXml();
       let expectedQueryXml = '<?xml version="1.0"?>' +
-      '<query xmlns="http://openlinksw.com/services/facets/1.0">' +
-      `<view type="${FctQuery.FCT_QRY_DFLT_VIEW_TYPE}" limit="${FctQuery.FCT_QRY_DFLT_VIEW_LIMIT}" offset="0">` +
-      '</view>' +
-      '</query>'.trim();
+        '<query xmlns="http://openlinksw.com/services/facets/1.0">' +
+        `<view type="${fctQuery.getDefaultViewType()}" limit="${fctQuery.getDefaultViewLimit()}" offset="0">` +
+        '</view>' +
+        '</query>'.trim();
       assert.equal(expectedQueryXml, queryXml);
     });
   });
 
-  describe('#queryText (set)', () => {
+  describe('#setQueryText', () => {
     it('should set the query text', () => {
       const fctQuery = new FctQuery();
       const qryTxt = 'Linked Data';
@@ -34,7 +37,7 @@ describe('FctQuery', () => {
     });
   });
 
-  describe('#queryText()', () => {
+  describe('#getQueryText', () => {
     it('should return the set query text', () => {
       const fctQuery = new FctQuery();
       fctQuery.setQueryText('linked data');
@@ -77,9 +80,9 @@ describe('FctQuery', () => {
       const fctQuery = new FctQuery();
       expect(fctQuery.getSameAs()).to.be.null;
     });
-    
+
     it("should set 'same-as' attribute to 'yes' or 'no'", () => {
-      let regex; 
+      let regex;
       const fctQuery = new FctQuery();
 
       fctQuery.setSameAs(true);
@@ -102,15 +105,13 @@ describe('FctQuery', () => {
 
   // describe.only('#execute', () => {
   describe('#execute', () => {
-    it.skip('should return a FctResult instance on success', async () => {
+    it('should return a FctResult instance on success', async () => {
       const fctQuery = new FctQuery();
-      console.log(fct_test_env);
       fctQuery.setServiceEndpoint(fct_test_env.fct_test_endpoint);
-      fctQuery.queryText = 'virtuoso';
+      fctQuery.setQueryText('virtuoso');
       fctQuery.setViewLimit(50);
 
       const qryResult = await fctQuery.execute();
-      // console.log('#execute: qryResult:', qryResult);
       expect(qryResult instanceof FctResult).to.be.true;
       expect(/^select /.test(qryResult.sparql)).to.be.true;
     });
@@ -122,15 +123,13 @@ describe('FctQuery', () => {
         <query xmlns="http://openlinksw.com/services/facets/1.0">
           <text>skiing</text>
         </query>`;
-      
+
       const fctQuery = new FctQuery(badXml);
       fctQuery.setServiceEndpoint(fct_test_env.fct_test_endpoint);
       try {
         await fctQuery.execute();
       }
-      catch (error)
-      {
-        // console.log(JSON.stringify(error, null, 2));
+      catch (error) {
         error.should.have.property("name", "FctError");
         error.should.have.property("httpStatusCode", 500);
         error.should.have.property("responseJson");
@@ -155,7 +154,7 @@ describe('FctQuery', () => {
       let fctQuery;
       fctQuery = new FctQuery(fixtureFctQry3);
       expect(fctQuery.getViewSubjectIndex()).to.equal(4);
-      
+
       fctQuery.setViewSubjectIndex(1);
       // console.log(fctQuery.toXml());
       expect(fctQuery.getViewSubjectIndex()).to.equal(1);
@@ -186,8 +185,7 @@ describe('FctQuery', () => {
       expect(rFilterDesc[7].text).to.equal('?s5 = "asbestos"');
       */
 
-      for (const filterDesc of rFilterDesc)
-      {
+      for (const filterDesc of rFilterDesc) {
         console.log('-- Filter ----------------------------');
         console.log(JSON.stringify(filterDesc, null, '  '));
       };
@@ -199,8 +197,7 @@ describe('FctQuery', () => {
 
       // expect(rFilterDesc.length).to.equal(8); // TO DO - Add assertions
 
-      for (const filterDesc of rFilterDesc)
-      {
+      for (const filterDesc of rFilterDesc) {
         console.log('-- Filter ----------------------------');
         console.log(JSON.stringify(filterDesc, null, '  '));
       };
@@ -213,8 +210,7 @@ describe('FctQuery', () => {
 
       // expect(rFilterDesc.length).to.equal(?); // TO DO - Add assertions
 
-      for (const filterDesc of rFilterDesc)
-      {
+      for (const filterDesc of rFilterDesc) {
         console.log('-- Filter ----------------------------');
         console.log(JSON.stringify(filterDesc, null, '  '));
       };
@@ -224,7 +220,7 @@ describe('FctQuery', () => {
   });
 
   describe('#addProperty', () => {
-    it ('for subject node ?s1', () => {
+    it('for subject node ?s1', () => {
       const query1 = `
         <?xml version="1.0"?>
         <query xmlns="http://openlinksw.com/services/facets/1.0" inference="" same-as="">
@@ -239,7 +235,7 @@ describe('FctQuery', () => {
       subjIndx = fctQuery.addProperty('http://schema.org/makesOffer', 1);
       // console.log('Test #addProperty: subjIndx1:', subjIndx);
       expect(subjIndx).to.equal(2);
-      
+
       subjIndx = fctQuery.addProperty('http://schema.org/businessFunction', 2);
       // console.log('Test #addProperty: subjIndx2:', subjIndx);
       expect(subjIndx).to.equal(3);
@@ -255,7 +251,7 @@ describe('FctQuery', () => {
   });
 
   describe('#getSubjectCount', () => {
-    it ('should return the number of implicit subject nodes in the query XML', () => {
+    it('should return the number of implicit subject nodes in the query XML', () => {
       const query1 = `
       <?xml version="1.0"?>
       <query xmlns="http://openlinksw.com/services/facets/1.0">
@@ -370,7 +366,7 @@ describe('FctQuery', () => {
       expect($node[0].tagName).to.equal('PROPERTY');
       expect($node.attr('iri')).to.equal('http://schema.org/businessFunction');
     });
-    
+
   });
 
   describe('#setSubjectCondition', () => {
@@ -408,32 +404,45 @@ describe('FctQuery', () => {
     it('should remove the filter with the given index', () => {
       let fctQuery = new FctQuery(fixtureFctQry5);
       let subjectIndex = fctQuery.getViewSubjectIndex();
+      expect(subjectIndex).to.equal(2);
+
       fctQuery.setSubjectCondition('eq', '27', 'http://www.w3.org/2001/XMLSchema#integer');
-      console.log('#removeQueryFilter: before removing filter: ', fctQuery.toXml());
+
+      let re = new RegExp(
+        '</text>\\s*<property iri="http://www.openlinksw.com/ski_resorts/schema#advanced_slopes">\\s*' +
+        '<cond type="eq".+>27</cond>\\s*</property>\\s*<view.+>');
+      expect(re.test(fctQuery.toXml())).to.be.true;
 
       let rFilterDesc = fctQuery.queryFilterDescriptors();
-      for (const filterDesc of rFilterDesc)
-      {
-        console.log('-- Filter ----------------------------');
-        console.log(JSON.stringify(filterDesc, null, '  '));
+      expect(rFilterDesc.length).to.equal(3);
+      /*
+      console.log('#removeQueryFilter: before removing filter: ', fctQuery.toXml());
+      for (const filterDesc of rFilterDesc) {
+      console.log('-- Filter ----------------------------');
+      console.log(JSON.stringify(filterDesc, null, '  '));
       };
+      */
 
       fctQuery.removeQueryFilter(1);
-      console.log('#removeQueryFilter: after removing filter: ', fctQuery.toXml());
-
       rFilterDesc = fctQuery.queryFilterDescriptors();
-      for (const filterDesc of rFilterDesc)
-      {
+      expect(rFilterDesc.length).to.equal(1);
+      /*
+      console.log('#removeQueryFilter: after removing filter: ', fctQuery.toXml());
+      for (const filterDesc of rFilterDesc) {
         console.log('-- Filter ----------------------------');
         console.log(JSON.stringify(filterDesc, null, '  '));
       };
+      */
 
-      expect(1).to.equal(0);
+      re = new RegExp(
+        '</text>\\s*<view.+>'
+      );
+      expect(re.test(fctQuery.toXml())).to.be.true;
     });
   });
 
   describe('#addPropertyOf', () => {
-    it ('for subject node ?s1', () => {
+    it('for subject node ?s1', () => {
       const query1target = `
         <?xml version="1.0"?>
         <query xmlns="http://openlinksw.com/services/facets/1.0">
@@ -462,7 +471,7 @@ describe('FctQuery', () => {
 
       subjIndx = fctQuery.addPropertyOf('http://xmlns.com/foaf/0.1/knows', 1);
       expect(subjIndx).to.equal(2);
-      
+
       subjIndx = fctQuery.addPropertyOf('http://xmlns.com/foaf/0.1/knows', 2);
       expect(subjIndx).to.equal(3);
 
@@ -473,9 +482,25 @@ describe('FctQuery', () => {
       fctQuery.setSubjectValue("eq", 'Melvin Carvalho');
       // TO DO: Add assertions
 
-      console.log(`XML:`, fctQuery.toXml()); // TO DO: Remove
+      // console.log(`XML:`, fctQuery.toXml()); // TO DO: Remove
 
       // fctQuery.setViewOffset(0);
+    });
+  });
+
+  describe('Check defaults on a new FctQuery instance', () => {
+    let fctQuery = new FctQuery();
+    it('Default view type should be set', () => {
+      expect(fctQuery.getDefaultViewType()).to.equal(DFLT_VIEW_TYPE);
+    });
+    it('Default view limit should be set', () => {
+      expect(fctQuery.getDefaultViewLimit()).to.equal(DFLT_VIEW_LIMIT);
+    });
+    it('Default query timeout should be set', () => {
+      expect(fctQuery.getDefaultQueryTimeout()).to.equal(DFLT_QUERY_TIMEOUT);
+    });
+    it('Default service endpoint should be set', () => {
+      expect(fctQuery.getDefaultServiceEndpoint()).to.equal(DFLT_SERVICE_ENDPOINT);
     });
   });
 

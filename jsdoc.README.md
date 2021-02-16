@@ -231,7 +231,7 @@ A short description of the effect of some elements is given. For a detailed desc
 [removeQueryTimeout](./FctQuery.html#removeQueryTimeout)  
 [setQueryTimeout](./FctQuery.html#setQueryTimeout)  
 
-[getInferenceContext](./FctQuery.html#getInferenceContext).  
+[getInferenceContext](./FctQuery.html#getInferenceContext)  
 [removeInferenceContext](./FctQuery.html#removeInferenceContext)  
 [setInferenceContext](./FctQuery.html##setInferenceContext)   
 

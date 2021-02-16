@@ -53,7 +53,7 @@ describe('JXON', () => {
 
 describe('JXON', () => {
   describe('#build', () => {
-    it('should build a JS object from a Facet XML view level 3 request', () => {
+    it('should build a JS object from a Facet XML view level 3b request', () => {
       let domParser = new DOMParser();
       let xmlDoc = domParser.parseFromString(viewLvl3bRequest, "application/xml");
       let jxon = new JXON();
@@ -71,17 +71,19 @@ describe('JXON', () => {
 
 describe('JXON', () => {
   describe('#build', () => {
-    it('should build a JS object from a Facet XML view level 3b request', () => {
+    it('should build a JS object from a Facet XML view level 3 request', () => {
       let domParser = new DOMParser();
       let xmlDoc = domParser.parseFromString(viewLvl3Request, "application/xml");
       let jxon = new JXON();
       let jsObj = jxon.build(xmlDoc);
-      console.log('jsObj: ', JSON.stringify(jsObj, null, 2));
+      // console.log('jsObj: ', JSON.stringify(jsObj, null, 2));
+      expect(jsObj.query.property.property["@iri"]).to.equal("http://www.openlinksw.com/schemas/twitter#follows");
+
       let xmlFromJson = jxon.unbuild(jsObj);
-      console.log('xmlFromJson: ', xmlFromJson);
-      expect(false).to.be.true;
-      // expect(jsObj.facets.result.row instanceof Array).to.be.true;
-      // expect(jsObj.facets.result.row.length).to.be.above(0);
+      // console.log('xmlFromJson: ', xmlFromJson);
+      let re = new RegExp('<query.+>.+<property iri="http://schema.org/mentions"><property iri="http://www.openlinksw.com/schemas/twitter#follows">');
+      let strXml = new XMLSerializer().serializeToString(xmlFromJson);
+      expect(re.test(strXml)).to.be.true;
     })
   })
 })
