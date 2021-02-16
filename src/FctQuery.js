@@ -4,92 +4,42 @@ import { FctError } from './FctError.js';
 import JXON from "./JXON.js";
 
 // --------------------------------------------------------------------------
-// Fixed defaults
-
-/**
- * The default view type (result set view) specified in a Facet query.
- * @default "text-d"
- */
-const FCT_QRY_DFLT_VIEW_TYPE = "text-d";
-
-// --------------------------------------------------------------------------
-// Configurable defaults
+//  Defaults
 
 /**
  * The default query timeout (milliseconds) for Facet searches.<br/>
- * This default is configurable.
  * @default 60000
+ * @see FctQuery#getDefaultQueryTimeout
  */
-export let FCT_QRY_AJAX_TIMEOUT = 60000; // milliseconds
+const DFLT_QUERY_TIMEOUT = 60000; // milliseconds
+
+/**
+ * The default Facet service endpoint for executing Facet queries.<br/>
+ * @default "http://linkeddata.uriburner.com/fct/service"
+ * @see FctQuery#getDefaultServiceEndpoint
+ */
+// const DFLT_SERVICE_ENDPOINT = 'http://linkeddata.uriburner.com/fct/service';
+const DFLT_SERVICE_ENDPOINT = 'http://localhost:8896/fct/service';
 
 /**
  * The default limit on the number of rows returned by a Facet query.<br/>
  * It provides a default value for the &lt;query&gt; element's <code>limit</code> attribute.<br/>
- * This default is configurable.
  * @default 50
+ * @see FctQuery#getDefaultViewLimit
  */
-export let FCT_QRY_DFLT_VIEW_LIMIT = 50;
+const DFLT_VIEW_LIMIT = 50;
 
 /**
- * The default Facet service endpoint for executing Facet queries.<br/>
- * This default is configurable.
- * @default "http://linkeddata.uriburner.com/fct/service"
+ * The default view type (result set view) specified in a Facet query.
+ * @default "text-d"
+ * @see FctQuery#getDefaultViewType
  */
-export let FCT_QRY_DFLT_SVC_ENDPOINT = 'http://linkeddata.uriburner.com/fct/service';
-// export let FCT_QRY_DFLT_SVC_ENDPOINT = 'http://localhost:8896/fct/service';
-
-/**
- * The default Virtuoso /describe service endpoint for describing and viewing 
- * entities in a Facet result set.<br/>
- * This default is configurable.
- * @default "http://linkeddata.uriburner.com/describe/"
- */
-export let DESCRIBE_DFLT_SVC_ENDPOINT = 'http://linkeddata.uriburner.com/describe/';
-// export let DESCRIBE_DFLT_SVC_ENDPOINT = 'http://localhost:8896/describe/';
-
-// TO DO
-// - Ensure FCT_QRY_AJAX_TIMEOUT is greater than the 
-//   the timeout specified in the query body.
-
-// TO DO:
-// Look for default overrides set through a config.js file.
-// FCT_QRY_DFLT_VIEW_LIMIT = xxx
-// FCT_QRY_AJAX_TIMEOUT = xxx
-// FCT_QRY_DFLT_SVC_ENDPOINT = xxx
-// DESCRIBE_DFLT_SVC_ENDPOINT = xxx
+const DFLT_VIEW_TYPE = "text-d";
 
 /**
  * Represents a Facet query.
  */
 export class FctQuery {
-
-  /**
-   * Getter for the configurable default FCT_QRY_DFLT_VIEW_LIMIT.
-   */
-  static get FCT_QRY_DFLT_VIEW_LIMIT() {
-    return FCT_QRY_DFLT_VIEW_LIMIT;
-  }
-
-  /**
-   * Getter for the default FCT_QRY_DFLT_VIEW_TYPE.
-   */
-  static get FCT_QRY_DFLT_VIEW_TYPE() {
-    return FCT_QRY_DFLT_VIEW_TYPE;
-  }
-
-  /**
-   * Getter for the configurable default FCT_QRY_DFLT_SVC_ENDPOINT.
-   */
-  static get FCT_QRY_DFLT_SVC_ENDPOINT() {
-    return FCT_QRY_DFLT_SVC_ENDPOINT;
-  }
-
-  /**
-   * Getter for the configurable default DESCRIBE_DFLT_SVC_ENDPOINT.<br/>
-   */
-  static get DESCRIBE_DFLT_SVC_ENDPOINT() {
-    return DESCRIBE_DFLT_SVC_ENDPOINT;
-  }
 
   /** 
    * @summary
@@ -103,12 +53,17 @@ export class FctQuery {
    * description is created. It contains the root &lt;query&gt; element
    * with just one child: a &lt;view&gt; element with attributes
    * <code>type</code>, <code>limit</code> and <code>offset</code>
-   * initialized to <code>FCT_QRY_DFLT_VIEW_TYPE</code>, 
-   * <code>FCT_QRY_DFLT_VIEW_LIMIT</code> and 0 respectively.
+   * initialized to the default view type, the default view limit and 0 respectively.
    * 
    * @param {string} [sourceXml] - XML describing a Facet query to initialize the FctQuery instance with.
    */
   constructor(sourceXml = null) {
+
+    this._defaultQueryTimeout = DFLT_QUERY_TIMEOUT;
+    this._defaultServiceEndpoint = DFLT_SERVICE_ENDPOINT;
+    this._defaultViewLimit = DFLT_VIEW_LIMIT;
+    this._defaultViewType = DFLT_VIEW_TYPE;
+
     if (!sourceXml) {
       // Create a skeleton XML document
       this._root = $('<XMLDocument />');
@@ -116,8 +71,8 @@ export class FctQuery {
       $query.attr('xmlns', 'http://openlinksw.com/services/facets/1.0');
       $query.append('<view/>');
       $query.find('view')
-        .attr('type', `${FCT_QRY_DFLT_VIEW_TYPE}`)
-        .attr('limit', `${FCT_QRY_DFLT_VIEW_LIMIT}`)
+        .attr('type', `${this._defaultViewType}`)
+        .attr('limit', `${this._defaultViewLimit}`)
         .attr('offset', '0');
     }
     else {
@@ -128,7 +83,43 @@ export class FctQuery {
       this._root = $(`<XMLDocument>${xml}</XMLDocument>`);
     }
 
-    this._fctSvcEndpoint = null;
+    this._fctServiceEndpoint = this._defaultServiceEndpoint;
+  }
+  
+  /**
+   * The default view type.
+   * 
+   * @see FctQuery#setViewType
+   */
+  getDefaultViewType() {
+    return this._defaultViewType;
+  }
+
+  /**
+   * The default query timeout.
+   * 
+   * @see FctQuery#setQueryTimeout
+   */
+  getDefaultQueryTimeout() {
+    return this._defaultQueryTimeout;
+  }
+
+  /**
+   * The default service endpoint.
+   * 
+   * @see FctQuery#setServiceEndpoint
+   */
+  getDefaultServiceEndpoint() {
+    return this._defaultServiceEndpoint;
+  }
+
+  /**
+   * The default view limit.
+   * 
+   * @see FctQuery#setViewLimit
+   */
+   getDefaultViewLimit() {
+    return this._defaultViewLimit;
   }
 
   /** 
@@ -158,7 +149,7 @@ export class FctQuery {
    * @see FctQuery#setServiceEndpoint
    */
   getServiceEndpoint() {
-    return this._fctSvcEndpoint;
+    return this._fctServiceEndpoint;
   }
 
   /** 
@@ -171,7 +162,7 @@ export class FctQuery {
    */
   setServiceEndpoint(fctSvcUrl) {
     // TO DO: Check fctSvcUrl is a URL
-    this._fctSvcEndpoint = fctSvcUrl;
+    this._fctServiceEndpoint = fctSvcUrl;
   }
 
   /**
@@ -516,7 +507,7 @@ export class FctQuery {
     let $nodeToRemove = rFilterDesc[filterId].$node;
     $nodeToRemove.remove();
     if (this._root.find('view').length === 0) {
-      let $replacementView = $(`<view type="${FctQuery.FCT_QRY_DFLT_VIEW_TYPE}" limit="${limit}" offset="0"/>`);
+      let $replacementView = $(`<view type="${this._defaultViewType}" limit="${limit}" offset="0"/>`);
       this._root.find('query').append($replacementView);
     }
   }
@@ -779,15 +770,16 @@ export class FctQuery {
        })
     })
     */
+    let qryTimeout = this.getQueryTimeout() || this.getDefaultQueryTimeout();
     console.log('FctQuery#execute: input XML: ', this.toXml());
     return new Promise((resolve, reject) => {
       $.ajax({
-        url: this._fctSvcEndpoint,
+        url: this._fctServiceEndpoint,
         data: this.toXml(),
         type: 'POST',
         contentType: 'text/xml',
         dataType: 'xml',
-        timeout: FCT_QRY_AJAX_TIMEOUT,
+        timeout: qryTimeout,
         success: successHndlr,
         error: errorHndlr,
       });
