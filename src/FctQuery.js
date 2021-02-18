@@ -174,7 +174,7 @@ export class FctQuery {
    * 
    * @returns {string} The URI of the graph, if any, the Facet search is restricted to.
    * 
-   * @see FctQuery#removeQueryGraph
+   * @see FctQuery#clearQueryGraph
    * @see FctQuery#setQueryGraph
    */
   getQueryGraph() {
@@ -192,7 +192,7 @@ export class FctQuery {
    * @param {string} [graphUri] - The URI of the graph to search.
    * 
    * @see FctQuery#getQueryGraph
-   * @see FctQuery#removeQueryGraph
+   * @see FctQuery#clearQueryGraph
    */
   setQueryGraph(graphUri) {
     // TO DO: Check graphUri is a URI
@@ -209,7 +209,7 @@ export class FctQuery {
    * @see FctQuery#getQueryGraph
    * @see FctQuery#setQueryGraph
    */
-  removeQueryGraph() {
+  clearQueryGraph() {
     this._root.find('query').removeAttr('graph');
   }
 
@@ -220,7 +220,7 @@ export class FctQuery {
    * 
    * @returns {integer} timeout (milliseconds)
    * 
-   * @see FctQuery#removeQueryTimeout
+   * @see FctQuery#clearQueryTimeout
    * @see FctQuery#setQueryTimeout
    */
   getQueryTimeout() {
@@ -238,7 +238,7 @@ export class FctQuery {
    * @param {integer} no_of_msec - The query timeout to be set (milliseconds).
    * 
    * @see FctQuery#getQueryTimeout
-   * @see FctQuery#removeQueryTimeout
+   * @see FctQuery#clearQueryTimeout
    */
   setQueryTimeout(no_of_msec) {
     // TO DO: Check no_of_msec is a positive integer
@@ -256,7 +256,7 @@ export class FctQuery {
    * @see FctQuery#getQueryTimeout
    * @see FctQuery#setQueryTimeout
    */
-  removeQueryTimeout() {
+  clearQueryTimeout() {
     this._root.find('query').removeAttr('timeout');
   }
 
@@ -266,10 +266,10 @@ export class FctQuery {
    * 
    * @returns {string} An inference context name
    * 
-   * @see FctQuery#removeInferenceContext
-   * @see FctQuery#setInferenceContext
+   * @see FctQuery#clearSubjectInference
+   * @see FctQuery#setSubjectInference
    */
-  getInferenceContext() {
+  getSubjectInference() {
     return this._root.find('query').attr('inference');
   }
 
@@ -280,15 +280,15 @@ export class FctQuery {
    * @description
    * <code>rdfsRuleSetName</code> is the name of an inference context
    * declared using Virtuoso's <code>rdfs_rule_set</code> SQL command.<br/>
-   * <code>setInferenceContext</code> sets attribute <code>inference</code>
+   * <code>setSubjectInference</code> sets attribute <code>inference</code>
    * on the &lt;query&gt; element.
    * 
    * @param {string} rdfsRuleSetName - The name of the inference rule set
    * 
-   * @see FctQuery#getInferenceContext
-   * @see FctQuery#removeInferenceContext
+   * @see FctQuery#getSubjectInference
+   * @see FctQuery#clearSubjectInference
    */
-  setInferenceContext(rdfsRuleSetName) {
+  setSubjectInference(rdfsRuleSetName) {
     // TO DO: Check rdfsRuleSetName is a non-empty string
     this._root.find('query').attr('inference', rdfsRuleSetName);
   }
@@ -300,10 +300,10 @@ export class FctQuery {
    * @description
    * Deletes any attribute <code>inference</code> on the &lt;query&gt; element.
    * 
-   * @see FctQuery#getInferenceContext 
-   * @see FctQuery#setInferenceContext
+   * @see FctQuery#getSubjectInference 
+   * @see FctQuery#setSubjectInference
    */
-  removeInferenceContext() {
+  clearSubjectInference() {
     this._root.find('query').removeAttr('inference');
   }
 
@@ -314,10 +314,10 @@ export class FctQuery {
    * 
    * @returns {boolean|null}
    * 
-   * @see FctQuery#removeSameAs
-   * @see FctQuery#setSameAs
+   * @see FctQuery#clearSubjectSameAs
+   * @see FctQuery#setSubjectSameAs
   */
-  getSameAs() {
+  getSubjectSameAs() {
     let sameAs = this._root.find('query').attr('same-as');
     let fSameAs;
     switch (sameAs) {
@@ -343,10 +343,10 @@ export class FctQuery {
    * 
    * @param {boolean} boolFlag - Turn same-as handling on/off.
    * 
-   * @see FctQuery#getSameAs
-   * @see FctQuery#removeSameAs
+   * @see FctQuery#getSubjectSameAs
+   * @see FctQuery#clearSubjectSameAs
    */
-  setSameAs(boolFlag) {
+  setSubjectSameAs(boolFlag) {
     if (typeof boolFlag != 'boolean')
       throw new Error('arg boolFlag must be boolean');
     let yesNo = boolFlag ? 'yes' : 'no'
@@ -361,10 +361,10 @@ export class FctQuery {
    * The same-as handling is removed by deleting any <code>same-as</code> 
    * attribute of the <query> element.
    * 
-   * @see FctQuery#getSameAs
-   * @see FctQuery#setSameAs
+   * @see FctQuery#getSubjectSameAs
+   * @see FctQuery#setSubjectSameAs
    */
-  removeSameAs() {
+  clearSubjectSameAs() {
     this._root.find('query').removeAttr('same-as');
   }
 
@@ -396,10 +396,10 @@ export class FctQuery {
    * 
    * @returns {string} 
    *
-   * @see FctQuery#removeQueryText
-   * @see FctQuery#setQueryText
+   * @see FctQuery#removeText
+   * @see FctQuery#addText
    */
-  getQueryText() {
+  getText() {
     return this._root.find('query text').text();
   }
 
@@ -413,10 +413,10 @@ export class FctQuery {
    * 
    * @param {string} str - The search text
    * 
-   * @see FctQuery#getQueryText
-   * @see FctQuery#removeQueryText
+   * @see FctQuery#getText
+   * @see FctQuery#removeText
    */
-  setQueryText(str) {
+  addText(str) {
     // It's assumed that Facet XML allows only a single <text> element
     // and this must be a direct child of <query>.
     if (!str || str.length === 0)
@@ -435,10 +435,10 @@ export class FctQuery {
    * @summary
    * Removes element &lt;text&gt;
    * 
-   * @see FctQuery#getQueryText
-   * @see FctQuery#setQueryText
+   * @see FctQuery#getText
+   * @see FctQuery#addText
    */
-  removeQueryText() {
+  removeText() {
     // TO DO: return necessary?
     return this._root.find('query text').remove();
   }
@@ -449,10 +449,10 @@ export class FctQuery {
    * 
    * @returns {string} 
    * 
-   * @see FctQuery#removeQueryTextProperty 
-   * @see FctQuery#setQueryTextProperty
+   * @see FctQuery#clearTextProperty 
+   * @see FctQuery#setTextProperty
    */
-  getQueryTextProperty() {
+  getTextProperty() {
     return this._root.find('query text').attr('property');
   }
 
@@ -468,10 +468,10 @@ export class FctQuery {
    * 
    * @param {string} propertyIri
    * 
-   * @see FctQuery#getQueryTextProperty
-   * @see FctQuery#removeQueryTextProperty 
+   * @see FctQuery#getTextProperty
+   * @see FctQuery#clearTextProperty 
    */
-  setQueryTextProperty(propertyIri) {
+  setTextProperty(propertyIri) {
     // TO DO: Check propertyIri is an IRI
     this._root.find('query text').attr('property', propertyIri);
   }
@@ -480,10 +480,10 @@ export class FctQuery {
    * @summary
    * Removes any <code>property</code> attribute on the <code>&lt;text&gt;</code> element.
    * 
-   * @see FctQuery#getQueryTextProperty
-   * @see FctQuery#setQueryTextProperty 
+   * @see FctQuery#getTextProperty
+   * @see FctQuery#setTextProperty 
    */
-  removeQueryTextProperty() {
+  clearTextProperty() {
     this._root.find('query text').removeAttr('property');
   }
 
@@ -499,7 +499,7 @@ export class FctQuery {
    * as a child of &lt;query&gt;, because &lt;view&gt; must always exist.
    * The limit attribute of the reinstated &lt;view&gt; remains unchanged.
    */
-  removeQueryFilter(filterId) {
+  removeFilter(filterId) {
     let rFilterDesc = this.queryFilterDescriptors();
     if (filterId < 0 || filterId >= rFilterDesc.length)
       throw new Error(`filterId (${filterId}) out of range`);
@@ -1170,6 +1170,8 @@ export class FctQuery {
    * The short description is intended for use in a UI to assist a user.
    * 
    * @returns {string}
+   * 
+   * @todo Implement
    */
   getViewDescription() {
     // Equivalent to /fct PL routine fct_view_info() // TO DO: Remove
@@ -1191,7 +1193,6 @@ export class FctQuery {
    * @returns {number} The subject index of the scope enclosed by the new <code>&lt;property&gt;</code> element
    */
   addProperty(propertyUri, subjectIndex, exclude = false, sameAs = false, inferenceContext = null) {
-    // See also: setSubjectProperty()
     return this.addPropertyOrPropertyOf('property', propertyUri, subjectIndex, exclude, sameAs, inferenceContext);
   }
 
@@ -1209,7 +1210,6 @@ export class FctQuery {
    * @returns {number} The subject index of the scope enclosed by the new <code>&lt;property-of&gt;</code> element
    */
   addPropertyOf(propertyUri, subjectIndex, exclude = false, sameAs = false, inferenceContext = null) {
-    // See also: setSubjectPropertyOf()
     return this.addPropertyOrPropertyOf('property-of', propertyUri, subjectIndex, exclude, sameAs, inferenceContext);
   }
 
@@ -1299,20 +1299,6 @@ export class FctQuery {
 
   /**
    * @summary
-   * Returns any <code>&lt;property&gt;</code> elements which are the immediate children of 
-   * a subject node.
-   * 
-   * @param {number} subjectIndex - The index of the subject node.
-   * 
-   * @returns {jQueryObject} A jQuery object containing the child <code>&lt;property&gt;</code> elements.
-   */
-  getSubjectProperties(subjectIndex) {
-    // TO DO
-    throw new Error('Not implemented');
-  }
-
-  /**
-   * @summary
    * Sets a condition on the current subject node which may be a query, property or property-of element.
    * 
    * @param conditionType {string} - eq | neq | gt | gte | lt | lte | range | neg_range | contains | in | not_in | near
@@ -1320,7 +1306,7 @@ export class FctQuery {
    * @param valueDataType {string} - the XML schema datatype of the value.
    * @param valueLang {string} - the language of the value, expressed as a two-letter (ISO 639-1) language code.
    * 
-   * @see FctQuery#setSubjectValue
+   * @see FctQuery#addValue
    * 
    * @description
    * The condition is specified using a &lt;cond&gt; element of the form:<br>
@@ -1332,7 +1318,7 @@ export class FctQuery {
    * After setting the condition, the subject node is reset to 1, the view type set to 'text-d' and
    * the view offset set to 0.
    */
-  setSubjectCondition(conditionType, value, valueDataType, valueLang = "", negate = false) {
+  addCondition(conditionType, value, valueDataType, valueLang = "", negate = false) {
     // value, valueLang, valueDataType are obtained from query string 
     // parameters val, lang and datatype respectively.
     // 
@@ -1370,7 +1356,7 @@ export class FctQuery {
 
   /**
    * @summary
-   * Removes all conditions on the current subject node.
+   * Removes all conditions on the given subject node.
    * 
    * @param {number} index - Index (1 based) of subject node for which any attached conditions are to be removed.
    */
@@ -1383,7 +1369,7 @@ export class FctQuery {
 
   /**
    * @summary
-   * Gets any conditions set on the current subject node. 
+   * Gets any conditions set on the given subject node. 
    * 
    * @param {number} index - Index (1 based) of subject node for which any attached conditions are to be returned.
    *
@@ -1420,15 +1406,15 @@ export class FctQuery {
    * Adds a class filter as a child of the current subject node.
    * 
    * @description
-   * Any existing class filter is overwritten.
+   * Any existing class filter, i.e. <code>&lt;class&gt;</code> element, is overwritten.
    * 
    * @param {string} classIri - The IRI of the class.
    * @param {string} [inferenceContext] - The name of the inference context to use.
    * 
    * @see FctQuery#getSubjectClass
-   * @see FctQuery#removeSubjectClass
+   * @see FctQuery#clearSubjectClass
    */
-  setSubjectClass(classIri, inferenceContext = null) {
+  addClass(classIri, inferenceContext = null) {
     let $subject = this.getSubjectElement();
     let $class = $subject.find('class');
     if ($class.length > 0)
@@ -1438,84 +1424,6 @@ export class FctQuery {
       classAttribs.inference = inferenceContext;
     $class = $('<class/>', classAttribs);
     $subject.append($class);
-  }
-
-  /** 
-   * @summary
-   * Returns a description of any class filter attached to the current subject node.
-   *  
-   * @see FctQuery#removeSubjectClass
-   * @see FctQuery#setSubjectClass
-   */
-  getSubjectClass() {
-    // TO DO
-    throw new Error('Not implemented');
-  }
-
-  /**
-   * @summary
-   * Removes any class filter attached to the current subject node.
-   * 
-   * @see FctQuery#getSubjectClass
-   * @see FctQuery#setSubjectClass
-   */
-  removeSubjectClass() {
-    // TO DO
-    throw new Error('Not implemented');
-  }
-
-  /**
-   * Adds a property filter as a child of the current subject node.
-   */
-  setSubjectProperty() {
-    // TO DO
-    // Redundant? See also addProperty().
-    // Rename addProperty to setSubjectProperty()?
-    // set/get/removeSubjectProperty provides a more consistent naming scheme than addProperty.
-    throw new Error('Not implemented');
-  }
-
-  /** 
-   * Returns a description of any property filter attached to the current subject node.
-   */
-  getSubjectProperty() {
-    // TO DO
-    throw new Error('Not implemented');
-  }
-
-  /**
-   * Removes any property filter attached to the current subject node.
-   */
-  removeSubjectProperty() {
-    // TO DO
-    throw new Error('Not implemented');
-  }
-
-  /** 
-   * Adds a property-of filter as a child of the current subject node.
-   */
-  setSubjectPropertyOf() {
-    // TO DO
-    // Redundant? See also addPropertyOf().
-    // Rename addPropertyOf to setSubjectPropertyOf()?
-    // set/get/removeSubjectPropertyOf provides a more consistent naming scheme than addPropertyOf.
-    throw new Error('Not implemented');
-  }
-
-  /**
-   * Returns a description of any property-of filter attached to the current subject node.
-   */
-  getSubjectPropertyOf() {
-    // TO DO
-    throw new Error('Not implemented');
-  }
-
-  /**
-   * Removes any property-of filter attached to the current subject node.
-   */
-  removeSubjectPropertyOf() {
-    // TO DO
-    throw new Error('Not implemented');
   }
 
   // -- Private methods -----------------------------------------------------
@@ -1616,7 +1524,7 @@ export class FctQuery {
    * 
    * After setting the condition, the subject node is reset to 1 and the view offset set to 0.
    */
-  setSubjectValue(
+  addValue(
     value,
     conditionType = "eq",
     valueDataType = "",

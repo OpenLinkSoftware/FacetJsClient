@@ -28,31 +28,31 @@ describe('FctQuery', () => {
     });
   });
 
-  describe('#setQueryText', () => {
+  describe('#addText', () => {
     it('should set the query text', () => {
       const fctQuery = new FctQuery();
       const qryTxt = 'Linked Data';
-      fctQuery.setQueryText(qryTxt);
-      expect(fctQuery.getQueryText()).to.equal(qryTxt);
+      fctQuery.addText(qryTxt);
+      expect(fctQuery.getText()).to.equal(qryTxt);
     });
   });
 
-  describe('#getQueryText', () => {
+  describe('#getText', () => {
     it('should return the set query text', () => {
       const fctQuery = new FctQuery();
-      fctQuery.setQueryText('linked data');
-      expect(fctQuery.getQueryText()).to.equal('linked data');
+      fctQuery.addText('linked data');
+      expect(fctQuery.getText()).to.equal('linked data');
     });
     it('should return an empty string if element <text> is removed', () => {
       const fctQuery = new FctQuery();
-      fctQuery.setQueryText('linked data');
-      expect(fctQuery.getQueryText()).to.equal('linked data');
-      fctQuery.removeQueryText();
-      expect(fctQuery.getQueryText()).to.equal('');
+      fctQuery.addText('linked data');
+      expect(fctQuery.getText()).to.equal('linked data');
+      fctQuery.removeText();
+      expect(fctQuery.getText()).to.equal('');
     });
     it('should return an empty string if element <text> is not present', () => {
       const fctQuery = new FctQuery();
-      expect(fctQuery.getQueryText()).to.equal('');
+      expect(fctQuery.getText()).to.equal('');
     });
   });
 
@@ -75,31 +75,31 @@ describe('FctQuery', () => {
     });
   });
 
-  describe('#setSameAs/#getSameAs/#removeSameAs', () => {
+  describe('#setSubjectSameAs/#getSubjectSameAs/#clearSubjectSameAs', () => {
     it("should return null if 'same-as' attribute is absent", () => {
       const fctQuery = new FctQuery();
-      expect(fctQuery.getSameAs()).to.be.null;
+      expect(fctQuery.getSubjectSameAs()).to.be.null;
     });
 
     it("should set 'same-as' attribute to 'yes' or 'no'", () => {
       let regex;
       const fctQuery = new FctQuery();
 
-      fctQuery.setSameAs(true);
+      fctQuery.setSubjectSameAs(true);
       regex = new RegExp(/same-as="yes"/);
       expect(regex.test(fctQuery.toXml())).to.be.true;
 
-      fctQuery.setSameAs(false);
+      fctQuery.setSubjectSameAs(false);
       regex = new RegExp(/same-as="no"/);
       expect(regex.test(fctQuery.toXml())).to.be.true;
     });
 
     it("should return null if 'same-as' attribute is removed", () => {
       const fctQuery = new FctQuery();
-      fctQuery.setSameAs(true);
-      expect(fctQuery.getSameAs()).to.be.true;
-      fctQuery.removeSameAs();
-      expect(fctQuery.getSameAs()).to.be.null;
+      fctQuery.setSubjectSameAs(true);
+      expect(fctQuery.getSubjectSameAs()).to.be.true;
+      fctQuery.clearSubjectSameAs();
+      expect(fctQuery.getSubjectSameAs()).to.be.null;
     });
   });
 
@@ -108,7 +108,7 @@ describe('FctQuery', () => {
     it('should return a FctResult instance on success', async () => {
       const fctQuery = new FctQuery();
       fctQuery.setServiceEndpoint(fct_test_env.fct_test_endpoint);
-      fctQuery.setQueryText('virtuoso');
+      fctQuery.addText('virtuoso');
       fctQuery.setViewLimit(50);
 
       const qryResult = await fctQuery.execute();
@@ -369,14 +369,14 @@ describe('FctQuery', () => {
 
   });
 
-  describe('#setSubjectCondition', () => {
+  describe('#addCondition', () => {
     it('should create an XML <cond> element', () => {
       let fctQuery = new FctQuery(fixtureFctQry5);
       let subjectIndex = fctQuery.getViewSubjectIndex();
-      // console.log('#setSubjectCondition: before setting condition: ', fctQuery.toXml());
-      fctQuery.setSubjectCondition('eq', '27', 'http://www.w3.org/2001/XMLSchema#integer');
-      // setSubjectCondition resets the subject index to 1
-      // console.log('#setSubjectCondition: after setting condition: ', fctQuery.toXml());
+      // console.log('#addCondition: before setting condition: ', fctQuery.toXml());
+      fctQuery.addCondition('eq', '27', 'http://www.w3.org/2001/XMLSchema#integer');
+      // addCondition resets the subject index to 1
+      // console.log('#addCondition: after setting condition: ', fctQuery.toXml());
 
       let $conditions = fctQuery.getSubjectConditionElements(subjectIndex);
       expect($($conditions[0]).text()).to.equal('27');
@@ -388,7 +388,7 @@ describe('FctQuery', () => {
     it('should remove all conditions on a subject', () => {
       let fctQuery = new FctQuery(fixtureFctQry5);
       let subjectIndex = fctQuery.getViewSubjectIndex();
-      fctQuery.setSubjectCondition('eq', '27', 'http://www.w3.org/2001/XMLSchema#integer');
+      fctQuery.addCondition('eq', '27', 'http://www.w3.org/2001/XMLSchema#integer');
       // console.log('#removeSubjectConditions: after setting condition: ', fctQuery.toXml());
       let $conditions = fctQuery.getSubjectConditionElements(subjectIndex);
       expect($conditions.length).to.equal(1);
@@ -400,13 +400,13 @@ describe('FctQuery', () => {
     });
   });
 
-  describe('#removeQueryFilter', () => {
+  describe('#removeFilter', () => {
     it('should remove the filter with the given index', () => {
       let fctQuery = new FctQuery(fixtureFctQry5);
       let subjectIndex = fctQuery.getViewSubjectIndex();
       expect(subjectIndex).to.equal(2);
 
-      fctQuery.setSubjectCondition('eq', '27', 'http://www.w3.org/2001/XMLSchema#integer');
+      fctQuery.addCondition('eq', '27', 'http://www.w3.org/2001/XMLSchema#integer');
 
       let re = new RegExp(
         '</text>\\s*<property iri="http://www.openlinksw.com/ski_resorts/schema#advanced_slopes">\\s*' +
@@ -416,18 +416,18 @@ describe('FctQuery', () => {
       let rFilterDesc = fctQuery.queryFilterDescriptors();
       expect(rFilterDesc.length).to.equal(3);
       /*
-      console.log('#removeQueryFilter: before removing filter: ', fctQuery.toXml());
+      console.log('#removeFilter: before removing filter: ', fctQuery.toXml());
       for (const filterDesc of rFilterDesc) {
       console.log('-- Filter ----------------------------');
       console.log(JSON.stringify(filterDesc, null, '  '));
       };
       */
 
-      fctQuery.removeQueryFilter(1);
+      fctQuery.removeFilter(1);
       rFilterDesc = fctQuery.queryFilterDescriptors();
       expect(rFilterDesc.length).to.equal(1);
       /*
-      console.log('#removeQueryFilter: after removing filter: ', fctQuery.toXml());
+      console.log('#removeFilter: after removing filter: ', fctQuery.toXml());
       for (const filterDesc of rFilterDesc) {
         console.log('-- Filter ----------------------------');
         console.log(JSON.stringify(filterDesc, null, '  '));
@@ -479,7 +479,7 @@ describe('FctQuery', () => {
       expect(subjIndx).to.equal(4);
 
       fctQuery.setViewSubjectIndex(subjIndx);
-      fctQuery.setSubjectValue("eq", 'Melvin Carvalho');
+      fctQuery.addValue("eq", 'Melvin Carvalho');
       // TO DO: Add assertions
 
       // console.log(`XML:`, fctQuery.toXml()); // TO DO: Remove

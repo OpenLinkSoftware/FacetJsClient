@@ -178,8 +178,91 @@ limit 100
 ```
 
 ## <a name="dtd"></a>DTD for the Facet Service Input XML
-```<!ELEMENT query (text?,class*,property*,property-of*,value?,view?,cond?)><!ELEMENT text (#PCDATA)><!ELEMENT class EMPTY><!ELEMENT property (class*|property*|property-of*|value?|view?)><!ELEMENT property-of (class*|property*|property-of*|value?|view?)><!ELEMENT value (#PCDATA)><!-- When element <value> occurs as a child of property-of, it must be datatype 'uri' (xsd:anyURI). The subject of the property to which 'property-of' refers must be an entity (a resource), not a literal; so the value's type must be 'uri'. This element has the 
-effect of constraining the entity's URI to the specified value.--><!ELEMENT view EMPTY><!-- Element <view> may occur as a child of a <query>, <property> or <property-of> element but may occur only once in the document.<view> specifies which subject is presented in the result set.--><!ATTLIST query  graph CDATA #IMPLIED  timeout CDATA #IMPLIED  inference CDATA #IMPLIED  same-as CDATA #IMPLIED><!ATTLIST view  type (classes|geo|geo-list|list|list-count|        properties|properties-in|propval-list|text|text-d|text-properties) #REQUIRED  limit CDATA #IMPLIED  offset CDATA #IMPLIED><!ATTLIST text  property CDATA #IMPLIED><!ATTLIST text-d  property CDATA #IMPLIED><!ATTLIST class  iri CDATA #IMPLIED  exclude yes #IMPLIED  inference CDATA #IMPLIED><!ATTLIST property  iri CDATA #REQUIRED  same_as yes #IMPLIED  inference CDATA #IMPLIED><!ATTLIST property-of  iri CDATA #REQUIRED  same_as yes #IMPLIED  inference CDATA #IMPLIED><!-- -- value and cond perform similar functions. --><!ATTLIST value  datatype CDATA #IMPLIED  xml:lang CDATA #IMPLIED  op (=|<|>|<=|>=) "="><!ATTLIST cond  datatype CDATA #IMPLIED  xml:lang CDATA #IMPLIED  op (=|<|>|<=|>=) "="  neg 1 #IMPLIED>
+```
+<!ELEMENT query (text?,class*,property*,property-of*,value?,view?,cond?)>
+
+<!ELEMENT text (#PCDATA)>
+
+<!ELEMENT class EMPTY>
+
+<!ELEMENT property (class*|property*|property-of*|value?|view?)>
+
+<!ELEMENT property-of (class*|property*|property-of*|value?|view?)>
+
+<!ELEMENT value (#PCDATA)>
+
+<!-- 
+When element <value> occurs as a child of property-of, it 
+must be datatype 'uri' (xsd:anyURI). The subject of the property to 
+which 'property-of' refers must be an entity (a resource), not a 
+literal; so the value's type must be 'uri'. This element has the 
+effect of constraining the entity's URI to the specified value.
+-->
+
+<!ELEMENT view EMPTY>
+
+<!-- 
+Element <view> may occur as a child of a <query>, <property> or 
+<property-of> element but may occur only once in the document.
+<view> specifies which subject is presented in the result set.
+-->
+
+<!ATTLIST query
+  graph CDATA #IMPLIED
+  timeout CDATA #IMPLIED
+  inference CDATA #IMPLIED
+  same-as CDATA #IMPLIED
+>
+
+<!ATTLIST view
+  type (classes|geo|geo-list|list|list-count|
+        properties|properties-in|propval-list|text|text-d|text-properties) #REQUIRED
+  limit CDATA #IMPLIED
+  offset CDATA #IMPLIED
+>
+
+<!ATTLIST text
+  property CDATA #IMPLIED
+>
+
+<!ATTLIST text-d
+  property CDATA #IMPLIED
+>
+
+<!ATTLIST class
+  iri CDATA #IMPLIED
+  exclude yes #IMPLIED
+  inference CDATA #IMPLIED
+>
+
+<!ATTLIST property
+  iri CDATA #REQUIRED
+  same_as yes #IMPLIED
+  inference CDATA #IMPLIED
+>
+
+<!ATTLIST property-of
+  iri CDATA #REQUIRED
+  same_as yes #IMPLIED
+  inference CDATA #IMPLIED
+>
+
+<!--
+ -- value and cond perform similar functions.
+ -->
+
+<!ATTLIST value
+  datatype CDATA #IMPLIED
+  xml:lang CDATA #IMPLIED
+  op (=|<|>|<=|>=) "="
+>
+
+<!ATTLIST cond
+  datatype CDATA #IMPLIED
+  xml:lang CDATA #IMPLIED
+  op (=|<|>|<=|>=) "="
+  neg 1 #IMPLIED
+>
 ```
 
 ## <a name="facet-input-xml-notes"></a>Facet Input XML Notes
@@ -201,6 +284,18 @@ The single `<view>` element allowed in the input XML can be a child of `<query>`
 A summary of the classes and methods supported by the API is shown below. For details of each method, see the [class links](index.html) in the sidebar at the top of the page.
 
 A short description of the effect of some elements is given. For a detailed description of each element refer to [Faceting Browsing Service](http://vos.openlinksw.com/owiki/wiki/VOS/VirtuosoFacetsWebService).
+
+### API Naming Conventions
+
+The FctQuery methods try as far as possible to use the following naming conventions for consistency:
+
+* add*Element*, remove*Element* : add or remove an XML element.
+
+* get*Element* : get information about an XML element.    
+
+* set*ElementAttribute*, clear*ElementAttribute* : sets (or adds) or removes an XML element attribute.
+
+* get*ElementAttribute* : get information about an XML element attribute.
 
 ### FctQuery
 
@@ -224,34 +319,34 @@ A short description of the effect of some elements is given. For a detailed desc
 ###### Query Element Attributes
 
 [getQueryGraph](./FctQuery.html#getQueryGraph)  
-[removeQueryGraph](./FctQuery.html#removeQueryGraph)  
+[clearQueryGraph](./FctQuery.html#clearQueryGraph)  
 [setQueryGraph](./FctQuery.html#setQueryGraph)  
 
 [getQueryTimeout](./FctQuery.html#getQueryTimeout)  
-[removeQueryTimeout](./FctQuery.html#removeQueryTimeout)  
+[clearQueryTimeout](./FctQuery.html#clearQueryTimeout)  
 [setQueryTimeout](./FctQuery.html#setQueryTimeout)  
 
-[getInferenceContext](./FctQuery.html#getInferenceContext)  
-[removeInferenceContext](./FctQuery.html#removeInferenceContext)  
-[setInferenceContext](./FctQuery.html##setInferenceContext)   
+[getSubjectInference](./FctQuery.html#getSubjectInference)  
+[clearSubjectInference](./FctQuery.html#clearSubjectInference)  
+[setSubjectInference](./FctQuery.html##setSubjectInference)   
 
-[getSameAs](./FctQuery.html#getSameAs)  
-[removeSameAs](./FctQuery.html#removeSameAs)  
-[setSameAs](./FctQuery.html#setSameAs)  
+[getSubjectSameAs](./FctQuery.html#getSubjectSameAs)  
+[clearSubjectSameAs](./FctQuery.html#clearSubjectSameAs)  
+[setSubjectSameAs](./FctQuery.html#setSubjectSameAs)  
 
 ##### Text Element
 
 `<text>` specifies the text which matching entities must contain.
 
-[getQueryText](./FctQuery.html#queryText)    
-[removeQueryText](./FctQuery.html#removeQueryText)  
-[setQueryText](./FctQuery.html#setQueryText)  
+[getText](./FctQuery.html#getText)    
+[removeText](./FctQuery.html#removeText)  
+[addText](./FctQuery.html#addText)  
 
 ###### Text Element Attributes
   
-[getQueryTextProperty](./FctQuery.html#getQueryTextProperty)  
-[removeQueryTextProperty](./FctQuery.html#removeQueryTextProperty)  
-[setQueryTextProperty](./FctQuery.html#setQueryTextProperty)  
+[getTextProperty](./FctQuery.html#getTextProperty)  
+[clearTextProperty](./FctQuery.html#clearTextProperty)  
+[setTextProperty](./FctQuery.html#setTextProperty)  
 
 ##### View Element
 
@@ -277,7 +372,7 @@ A short description of the effect of some elements is given. For a detailed desc
 
 `<value>` constrains the value of a subject property or a subject IRI.
 
-[setSubjectValue](./FctQuery.html#setSubjectValue)  
+[addValue](./FctQuery.html#addValue)  
 [getValueAsTurtle](./FctQuery.html#getValueAsTurtle)    
 
 ##### Cond Element
@@ -285,15 +380,13 @@ A short description of the effect of some elements is given. For a detailed desc
 `<cond>`, like `<value>`, constrains the value of a property.
 
 [removeSubjectConditions](./FctQuery.html#removeSubjectConditions)  
-[setSubjectCondition](./FctQuery.html#setSubjectCondition)
+[addCondition](./FctQuery.html#addCondition)
 
 ##### Class Element
 
 `<class>` specifies that entities being searched for must be instances of this class.
 
-[getSubjectClass](./FctQuery.html#getSubjectClass)  
-[removeSubjectClass](./FctQuery.html#removeSubjectClass)  
-[setSubjectClass](./FctQuery.html#setSubjectClass)  
+[addClass](./FctQuery.html#addClass)  
 
 ##### Class Element Attributes
 
@@ -315,19 +408,13 @@ The `<property>` and `<property-of>` elements introduce implicit query subjects 
 [addProperty](./FctQuery.html#addProperty)  
 [addPropertyOf](./FctQuery.html#addPropertyOf)   
 
-[getSubjectProperty](./FctQuery.html#getSubjectProperty)  
-[removeSubjectProperty](./FctQuery.html#removeSubjectProperty)  
-[setSubjectProperty](./FctQuery.html#setSubjectProperty)  
-
-[getSubjectPropertyOf](./FctQuery.html#getSubjectPropertyOf)  
-[removeSubjectPropertyOf](./FctQuery.html#removeSubjectPropertyOf)  
-[setSubjectPropertyOf](./FctQuery.html#setSubjectPropertyOf)  
-
 [getSubjectCount](./FctQuery.html#getSubjectCount)  
-[getSubjectProperties](./FctQuery.html#getSubjectProperties)  
-[getSubjectAllPropertyOf](./FctQuery.html#getSubjectAllPropertyOf)  
 
 #### Filters
+
+Filters are some form of search constraint. The following elements introduce a filter:
+
+`<query>`, `<class>`, `<cond>`, `<property>`, `<property-of>`, `<text>`, `<value>`
 
 Filter descriptors are SPARQL-like subject + predicate + object sentences which describe the filters being applied by the input XML. They provide a textual summary of the search constraints in force, i.e. the constraints on facets of entities being searched. These textual descriptors are intended for use in a UI.
 
