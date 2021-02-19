@@ -418,7 +418,7 @@ Filters are some form of search constraint. The following elements introduce a f
 Filter descriptors are SPARQL-like subject + predicate + object sentences which describe the filters being applied by the input XML. They provide a textual summary of the search constraints in force, i.e. the constraints on facets of entities being searched. These textual descriptors are intended for use in a UI.
 
 [queryFilterDescriptors](./FctQuery.html#queryFilterDescriptors)  
-[removeQueryFilter](./FctQuery.html#removeQueryFilter)    
+[removeFilter](./FctQuery.html#removeFilter)    
 
 #### Helpers
 
