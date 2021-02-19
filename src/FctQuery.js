@@ -378,11 +378,11 @@ export class FctQuery {
    * 
    * @returns {jQueryObject}
    * 
-   * @see FctQuery#getSubjectElement
-   * @see FctQuery#getSubjectParentElement
-   * @see FctQuery#getSubjectConditionElements
+   * @see FctQuery#getElementSubject
+   * @see FctQuery#getElementSubjectParent
+   * @see FctQuery#getElementsSubjectConditions
    */
-  getQueryElement() {
+  getElementQuery() {
     return this._root.find('query');
   }
 
@@ -1257,12 +1257,12 @@ export class FctQuery {
    * @description
    * Returns the element which provides the context for a given subject node.
    * 
-   * @see FctQuery#getSubjectElement
-   * @see FctQuery#getSubjectConditionElements
-   * @see FctQuery#getQueryElement
+   * @see FctQuery#getElementSubject
+   * @see FctQuery#getElementsSubjectConditions
+   * @see FctQuery#getElementQuery
    */
-  getSubjectParentElement(subjectIndex) {
-    // console.log('FctQuery#getSubjectParentElement: in: subjectIndex:', subjectIndex);
+  getElementSubjectParent(subjectIndex) {
+    // console.log('FctQuery#getElementSubjectParent: in: subjectIndex:', subjectIndex);
     if (typeof subjectIndex !== 'number')
       throw new Error('subjectIndex must be a number');
     let maxSubjIndx = this.getSubjectCount();
@@ -1276,7 +1276,7 @@ export class FctQuery {
     let subjIndx = 1;
     let $matchedEl = null;
     let traverseDescendents = $n => {
-      // console.log('getSubjectParentElement: visiting tag:', $n[0].tagName, ', subjIndx:', subjIndx);
+      // console.log('getElementSubjectParent: visiting tag:', $n[0].tagName, ', subjIndx:', subjIndx);
       $n.children().each((idx, el) => {
         if ($matchedEl)
           return;
@@ -1284,7 +1284,7 @@ export class FctQuery {
           ++subjIndx;
         if (subjIndx === subjectIndex) {
           $matchedEl = $(el);
-          // console.log('getSubjectParentElement: match on tag:', $matchedEl[0].tagName, ', subjIndx:', subjIndx);
+          // console.log('getElementSubjectParent: match on tag:', $matchedEl[0].tagName, ', subjIndx:', subjIndx);
           return;
         }
         if ($(el).children().length > 0) {
@@ -1340,7 +1340,7 @@ export class FctQuery {
     if (vdt === undefined || vdt === null)
       vdt = '';
 
-    let $subject = this.getSubjectElement();
+    let $subject = this.getElementSubject();
 
     // Remove any existing cond element
     // Can multiple value elements be present provided the conditions don't conflict?
@@ -1363,7 +1363,7 @@ export class FctQuery {
   removeSubjectConditions(index) {
     let currentSubjectIndex = this.getViewSubjectIndex();
     this.setViewSubjectIndex(index);
-    this.getSubjectElement().find('cond').remove();
+    this.getElementSubject().find('cond').remove();
     this.setViewSubjectIndex(currentSubjectIndex);
   }
 
@@ -1375,14 +1375,14 @@ export class FctQuery {
    *
    * @returns {jQueryObject}
    * 
-   * @see FctQuery#getSubjectParentElement
-   * @see FctQuery#getSubjectElement
-   * @see FctQuery#getQueryElement
+   * @see FctQuery#getElementSubjectParent
+   * @see FctQuery#getElementSubject
+   * @see FctQuery#getElementQuery
    */
-  getSubjectConditionElements(index) {
+  getElementsSubjectConditions(index) {
     let currentSubjectIndex = this.getViewSubjectIndex();
     this.setViewSubjectIndex(index);
-    let $conditions = this.getSubjectElement().find('cond');
+    let $conditions = this.getElementSubject().find('cond');
     this.setViewSubjectIndex(currentSubjectIndex);
     return $conditions;
   }
@@ -1393,11 +1393,11 @@ export class FctQuery {
    * 
    * @returns {jQueryObject}
    * 
-   * @see FctQuery#getSubjectParentElement
-   * @see FctQuery#getSubjectConditionElements
-   * @see FctQuery#getQueryElement
+   * @see FctQuery#getElementSubjectParent
+   * @see FctQuery#getElementsSubjectConditions
+   * @see FctQuery#getElementQuery
    */
-  getSubjectElement() {
+  getElementSubject() {
     return this._root.find('view').parent();
   }
 
@@ -1415,7 +1415,7 @@ export class FctQuery {
    * @see FctQuery#clearSubjectClass
    */
   addClass(classIri, inferenceContext = null) {
-    let $subject = this.getSubjectElement();
+    let $subject = this.getElementSubject();
     let $class = $subject.find('class');
     if ($class.length > 0)
       $class.remove();
@@ -1499,7 +1499,7 @@ export class FctQuery {
     if (inferenceContext)
       newPropAttribs.inference = inferenceContext;
     let $newProp = $(`<${propertyName}/>`, newPropAttribs);
-    let $parent = this.getSubjectParentElement(subjectIndex);
+    let $parent = this.getElementSubjectParent(subjectIndex);
     $parent.append($newProp);
     return getPropertySubjectIndex($newProp);
   }
@@ -1551,7 +1551,7 @@ export class FctQuery {
     // If attribute type is omitted, /fct assumes op="eq". 
     // Remove any existing value element
     // Can multiple value elements be present provided the conditions don't conflict?
-    let $subject = this.getSubjectElement();
+    let $subject = this.getElementSubject();
     $subject.find('value').remove();
     let $value = $(`<value type="${conditionType}" xml:lang="${valueLang}" datatype="${vdt}">${val}</value>`);
     $subject.append($value);

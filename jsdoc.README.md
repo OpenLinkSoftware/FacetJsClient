@@ -285,17 +285,16 @@ A summary of the classes and methods supported by the API is shown below. For de
 
 A short description of the effect of some elements is given. For a detailed description of each element refer to [Faceting Browsing Service](http://vos.openlinksw.com/owiki/wiki/VOS/VirtuosoFacetsWebService).
 
-### API Naming Conventions
+##### API Naming Conventions
+	
+Where FctQuery methods manipulate or return information about the input XML, the method naming tries, as far as possible, to use the following conventions for consistency:
+	
+* add{Element}, remove{Element} : adds or removes an XML element.
+* get{Element} : gets information about an XML element.    
+* set{Element}{Attribute}, clear{Element}{Attribute} : sets (or adds) or removes an XML element attribute.
+* get{Element}{Attribute} : gets information about an XML element attribute.
 
-The FctQuery methods try as far as possible to use the following naming conventions for consistency:
-
-* add*Element*, remove*Element* : add or remove an XML element.
-
-* get*Element* : get information about an XML element.    
-
-* set*ElementAttribute*, clear*ElementAttribute* : sets (or adds) or removes an XML element attribute.
-
-* get*ElementAttribute* : get information about an XML element attribute.
+The `<query>`, `<property>` and `<property-of>` elements introduce implicit query subjects and have some attributes in common. Methods for manipulating these attributes, and methods relating to these subjects, use *Subject* as the element component of the method name.
 
 ### FctQuery
 
@@ -324,15 +323,7 @@ The FctQuery methods try as far as possible to use the following naming conventi
 
 [getQueryTimeout](./FctQuery.html#getQueryTimeout)  
 [clearQueryTimeout](./FctQuery.html#clearQueryTimeout)  
-[setQueryTimeout](./FctQuery.html#setQueryTimeout)  
-
-[getSubjectInference](./FctQuery.html#getSubjectInference)  
-[clearSubjectInference](./FctQuery.html#clearSubjectInference)  
-[setSubjectInference](./FctQuery.html##setSubjectInference)   
-
-[getSubjectSameAs](./FctQuery.html#getSubjectSameAs)  
-[clearSubjectSameAs](./FctQuery.html#clearSubjectSameAs)  
-[setSubjectSameAs](./FctQuery.html#setSubjectSameAs)  
+[setQueryTimeout](./FctQuery.html#setQueryTimeout)   
 
 ##### Text Element
 
@@ -403,12 +394,20 @@ The FctQuery methods try as far as possible to use the following naming conventi
 
 ##### Subject Nodes
 
-The `<property>` and `<property-of>` elements introduce implicit query subjects and act as containers for child elements specifying conditions that apply to the implicit subject.
+The `<query>`, `<property>` and `<property-of>` elements introduce implicit query subjects and act as containers for child elements specifying conditions that apply to the implicit subject. 
 
 [addProperty](./FctQuery.html#addProperty)  
 [addPropertyOf](./FctQuery.html#addPropertyOf)   
 
 [getSubjectCount](./FctQuery.html#getSubjectCount)  
+
+[clearSubjectInference](./FctQuery.html#clearSubjectInference)  
+[getSubjectInference](./FctQuery.html#getSubjectInference)  
+[setSubjectInference](./FctQuery.html##setSubjectInference)      
+
+[clearSubjectSameAs](./FctQuery.html#clearSubjectSameAs)  
+[getSubjectSameAs](./FctQuery.html#getSubjectSameAs)    
+[setSubjectSameAs](./FctQuery.html#setSubjectSameAs)   
 
 #### Filters
 
@@ -431,10 +430,10 @@ Filter descriptors are SPARQL-like subject + predicate + object sentences which 
 
 These methods return a jQuery object referencing one or more  elements in the input XML tree.
 
-[getQueryElement](./FctQuery.html#getQueryElement)  
-[getSubjectElement](./FctQuery.html#getSubjectElement)  
-[getSubjectParentElement](./FctQuery.html#getSubjectParentElement)  
-[getSubjectConditionElements](./FctQuery.html#getSubjectConditionElements)  
+[getElementQuery](./FctQuery.html#getElementQuery)  
+[getElementSubject](./FctQuery.html#getElementSubject)  
+[getElementSubjectParent](./FctQuery.html#getElementSubjectParent)  
+[getElementsSubjectConditions](./FctQuery.html#getElementsSubjectConditions)  
 
 ### FctResult
 

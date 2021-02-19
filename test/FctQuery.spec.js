@@ -314,7 +314,7 @@ describe('FctQuery', () => {
     });
   });
 
-  describe('#getSubjectParentElement', () => {
+  describe('#getElementSubjectParent', () => {
 
     const query1 = `
     <?xml version="1.0"?>
@@ -342,27 +342,27 @@ describe('FctQuery', () => {
 
     it('should error if subjectIndex is not numeric', () => {
       let fctQuery = new FctQuery();
-      expect(() => fctQuery.getSubjectParentElement('a')).to.throw();
+      expect(() => fctQuery.getElementSubjectParent('a')).to.throw();
     });
 
     it('should error if subjectIndex is out of range', () => {
       let fctQuery = new FctQuery(query1);
-      expect(() => fctQuery.getSubjectParentElement(0)).to.throw();
-      expect(() => fctQuery.getSubjectParentElement(6)).to.throw();
+      expect(() => fctQuery.getElementSubjectParent(0)).to.throw();
+      expect(() => fctQuery.getElementSubjectParent(6)).to.throw();
     });
 
     it('should return the parent element of a subject node', () => {
       let fctQuery = new FctQuery(query1);
       let $node;
 
-      $node = fctQuery.getSubjectParentElement(1);
+      $node = fctQuery.getElementSubjectParent(1);
       expect($node[0].tagName).to.equal('QUERY');
 
-      $node = fctQuery.getSubjectParentElement(4);
+      $node = fctQuery.getElementSubjectParent(4);
       expect($node[0].tagName).to.equal('PROPERTY');
       expect($node.attr('iri')).to.equal('http://schema.org/itemOffered');
 
-      $node = fctQuery.getSubjectParentElement(3);
+      $node = fctQuery.getElementSubjectParent(3);
       expect($node[0].tagName).to.equal('PROPERTY');
       expect($node.attr('iri')).to.equal('http://schema.org/businessFunction');
     });
@@ -378,7 +378,7 @@ describe('FctQuery', () => {
       // addCondition resets the subject index to 1
       // console.log('#addCondition: after setting condition: ', fctQuery.toXml());
 
-      let $conditions = fctQuery.getSubjectConditionElements(subjectIndex);
+      let $conditions = fctQuery.getElementsSubjectConditions(subjectIndex);
       expect($($conditions[0]).text()).to.equal('27');
       expect($conditions[0].tagName).to.equal('COND');
     });
@@ -390,12 +390,12 @@ describe('FctQuery', () => {
       let subjectIndex = fctQuery.getViewSubjectIndex();
       fctQuery.addCondition('eq', '27', 'http://www.w3.org/2001/XMLSchema#integer');
       // console.log('#removeSubjectConditions: after setting condition: ', fctQuery.toXml());
-      let $conditions = fctQuery.getSubjectConditionElements(subjectIndex);
+      let $conditions = fctQuery.getElementsSubjectConditions(subjectIndex);
       expect($conditions.length).to.equal(1);
 
       fctQuery.removeSubjectConditions(subjectIndex)
       // console.log('#removeSubjectCondition: after removing condition: XML: ', fctQuery.toXml());
-      $conditions = fctQuery.getSubjectConditionElements(subjectIndex);
+      $conditions = fctQuery.getElementsSubjectConditions(subjectIndex);
       expect($conditions.length).to.equal(0);
     });
   });
