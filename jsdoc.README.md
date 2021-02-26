@@ -9,7 +9,7 @@ FacetJsClient is a Javascript interface to Virtuoso's /fct/service. It aims to b
 
 See also:
 
-  * Source code: [GitHub: FacetJsClient](https://github.com/cblakeley/FacetJsClient/tree/develop)
+  * Source code: [GitHub: FacetJsClient](https://github.com/OpenLinkSoftware/FacetJsClient/tree/master)
 
 ### Contents
 

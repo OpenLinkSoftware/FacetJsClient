@@ -9,8 +9,8 @@ FacetJsClient is a Javascript interface to Virtuoso's /fct/service. It aims to b
 
 See also:
 
-  * branch [develop](https://github.com/cblakeley/FacetJsClient/tree/develop)
-  * [JSDoc documentation](./doc/index.html)
+  * branch [develop](https://github.com/OpenLinkSoftware/FacetJsClient/tree/develop)
+  * [JSDoc documentation](https://www.openlinksw.com/DAV/Public/FacetJsClient/doc/index.html)
 
 ## Setup & Testing
 A [Karma](https://karma-runner.github.io/3.0/index.html) test setup is included for testing of the library from within a browser, [Headless Chrome](https://developers.google.com/web/updates/2017/06/headless-karma-mocha-chai) in this case.
