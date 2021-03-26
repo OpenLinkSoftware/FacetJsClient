@@ -512,6 +512,24 @@ export class FctQuery {
     }
   }
 
+  /**
+   * @summary 
+   * Removes all filters from the Facet XML.
+   *    
+   * @description
+   * Because &lt;view&gt; must always exist, a new &lt;view&gt; element is 
+   * created at the top level, as a child of &lt;query&gt;.
+   * The limit attribute of the reinstated &lt;view&gt; remains unchanged.
+   */
+  removeFilters() {
+    let rFilterDesc = this.queryFilterDescriptors();
+    if (!rFilterDesc || rFilterDesc.length == 0)
+      return;
+    for (let i = rFilterDesc.length - 1; i >= 0; i--) {
+      this.removeFilter(i);
+    }
+  }
+
   /** 
    * @summary
    * Returns the current limit on the number of rows returned by a query.

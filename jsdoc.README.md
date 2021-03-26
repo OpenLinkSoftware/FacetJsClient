@@ -419,6 +419,7 @@ Filter descriptors are SPARQL-like subject + predicate + object sentences which 
 
 [queryFilterDescriptors](./FctQuery.html#queryFilterDescriptors)  
 [removeFilter](./FctQuery.html#removeFilter)    
+[removeFilters](./FctQuery.html#removeFilters)  
 
 #### Helpers
 
